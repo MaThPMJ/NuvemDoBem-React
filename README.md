@@ -145,7 +145,7 @@ O projeto utiliza a biblioteca **[Font Awesome 6](https://fontawesome.com/)** (v
 
 ```bash
 # 1. Clone o repositório
-git clone <URL_DO_REPOSITÓRIO>
+git clone https://github.com/MaThPMJ/NuvemDoBem-React
 
 # 2. Acesse a pasta do projeto
 cd NuvemDoBem-React
@@ -178,6 +178,15 @@ Para entrar em contato com a equipe do projeto:
 | **Matheus Peres** | [LinkedIn](https://www.linkedin.com/in/matheus10122002/) · [GitHub](https://github.com/MaThPMJ) |
 | **Davi Isac** | [GitHub](https://github.com/klaanyz) |
 | **Pedro Gonçalves** | [LinkedIn](https://www.linkedin.com/in/pedro-gonçalves-23561b389) · [GitHub](https://github.com/PxdroGoncalves) |
+
+---
+
+## Links
+
+| | Link |
+|---|---|
+| Repositório | [github.com/MaThPMJ/NuvemDoBem-React](https://github.com/MaThPMJ/NuvemDoBem-React) |
+| Vídeo de demonstração | [youtu.be/AFPI6A1FeYQ](https://youtu.be/AFPI6A1FeYQ) |
 
 ---
 
