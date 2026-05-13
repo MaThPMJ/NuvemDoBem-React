@@ -33,7 +33,7 @@ export const integrantes: Integrante[] = [
     turma: '1TDSPR',
     foto: davi,
     github: 'https://github.com/klaanyz',
-    linkedin: '#',
+    linkedin: 'https://www.linkedin.com/in/davi-isac-a1a774372/',
     papel: 'Desenvolvedor Front-end',
     bio: 'Atuou no desenvolvimento das páginas e na lógica de interação com o usuário, contribuindo para a experiência responsiva do projeto.',
   },
