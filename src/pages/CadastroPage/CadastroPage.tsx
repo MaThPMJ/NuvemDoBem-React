@@ -5,7 +5,7 @@ import SectionTitle from '../../Components/ui/SectionTitle'
 import Input from '../../Components/ui/Input'
 import Button from '../../Components/ui/Button'
 
-type TipoCadastro = 'dentista' | 'patrocinador' | 'beneficiario'
+type TipoCadastro = 'dentista' | 'patrocinador' | 'beneficiario' | 'funcionario'
 
 interface DentistaForm {
   nome: string
@@ -13,7 +13,8 @@ interface DentistaForm {
   senha: string
   cro: string
   especialidade: string
-  cidade: string
+  telefone: string
+  cep: string
 }
 
 interface PatrocinadorForm {
@@ -22,7 +23,6 @@ interface PatrocinadorForm {
   senha: string
   cnpjCpf: string
   telefone: string
-  cidade: string
 }
 
 interface BeneficiarioForm {
@@ -31,7 +31,15 @@ interface BeneficiarioForm {
   senha: string
   cpf: string
   dataNascimento: string
-  cidade: string
+  telefone: string
+  cep: string
+}
+
+interface FuncionarioForm {
+  nome: string
+  email: string
+  cargo: string
+  senha: string
 }
 
 const tipos = [
@@ -52,6 +60,12 @@ const tipos = [
     icon: 'fa-solid fa-user',
     titulo: 'Beneficiário',
     descricao: 'Pessoa que busca atendimento odontológico gratuito.',
+  },
+  {
+    id: 'funcionario' as TipoCadastro,
+    icon: 'fa-solid fa-id-badge',
+    titulo: 'Funcionário TDB',
+    descricao: 'Membro da equipe interna da organização.',
   },
 ]
 
@@ -80,9 +94,15 @@ function FormDentista({ onSuccess }: { onSuccess: () => void }) {
       <Input label="Especialidade" name="especialidade"
         registration={register('especialidade', { required: 'Especialidade é obrigatória.' })}
         error={errors.especialidade?.message} />
-      <Input label="Cidade / Estado" name="cidade"
-        registration={register('cidade', { required: 'Cidade é obrigatória.' })}
-        error={errors.cidade?.message} />
+      <Input label="Telefone" name="telefone" type="tel"
+        registration={register('telefone', { required: 'Telefone é obrigatório.' })}
+        error={errors.telefone?.message} />
+      <Input label="CEP" name="cep"
+        registration={register('cep', {
+          required: 'CEP é obrigatório.',
+          pattern: { value: /^\d{5}-?\d{3}$/, message: 'Informe um CEP válido (ex: 01310-100).' },
+        })}
+        error={errors.cep?.message} />
       <Button type="submit">Cadastrar</Button>
     </form>
   )
@@ -110,12 +130,9 @@ function FormPatrocinador({ onSuccess }: { onSuccess: () => void }) {
       <Input label="CNPJ / CPF" name="cnpjCpf"
         registration={register('cnpjCpf', { required: 'CNPJ ou CPF é obrigatório.' })}
         error={errors.cnpjCpf?.message} />
-      <Input label="Telefone" name="telefone"
+      <Input label="Telefone" name="telefone" type="tel"
         registration={register('telefone', { required: 'Telefone é obrigatório.' })}
         error={errors.telefone?.message} />
-      <Input label="Cidade / Estado" name="cidade"
-        registration={register('cidade', { required: 'Cidade é obrigatória.' })}
-        error={errors.cidade?.message} />
       <Button type="submit">Cadastrar</Button>
     </form>
   )
@@ -146,9 +163,42 @@ function FormBeneficiario({ onSuccess }: { onSuccess: () => void }) {
       <Input label="Data de nascimento" name="dataNascimento" type="date"
         registration={register('dataNascimento', { required: 'Data de nascimento é obrigatória.' })}
         error={errors.dataNascimento?.message} />
-      <Input label="Cidade / Estado" name="cidade"
-        registration={register('cidade', { required: 'Cidade é obrigatória.' })}
-        error={errors.cidade?.message} />
+      <Input label="Telefone" name="telefone" type="tel"
+        registration={register('telefone', { required: 'Telefone é obrigatório.' })}
+        error={errors.telefone?.message} />
+      <Input label="CEP" name="cep"
+        registration={register('cep', {
+          required: 'CEP é obrigatório.',
+          pattern: { value: /^\d{5}-?\d{3}$/, message: 'Informe um CEP válido (ex: 01310-100).' },
+        })}
+        error={errors.cep?.message} />
+      <Button type="submit">Cadastrar</Button>
+    </form>
+  )
+}
+
+function FormFuncionario({ onSuccess }: { onSuccess: () => void }) {
+  const { register, handleSubmit, formState: { errors } } = useForm<FuncionarioForm>()
+  return (
+    <form onSubmit={handleSubmit(onSuccess)} className="grid gap-4" noValidate>
+      <Input label="Nome completo" name="nome"
+        registration={register('nome', { required: 'Nome é obrigatório.' })}
+        error={errors.nome?.message} />
+      <Input label="E-mail" name="email" type="email"
+        registration={register('email', {
+          required: 'E-mail é obrigatório.',
+          pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Informe um e-mail válido.' },
+        })}
+        error={errors.email?.message} />
+      <Input label="Cargo" name="cargo"
+        registration={register('cargo', { required: 'Cargo é obrigatório.' })}
+        error={errors.cargo?.message} />
+      <Input label="Senha" name="senha" type="password"
+        registration={register('senha', {
+          required: 'Senha é obrigatória.',
+          minLength: { value: 6, message: 'Mínimo de 6 caracteres.' },
+        })}
+        error={errors.senha?.message} />
       <Button type="submit">Cadastrar</Button>
     </form>
   )
@@ -223,6 +273,7 @@ export default function CadastroPage() {
             {tipo === 'dentista' && <FormDentista onSuccess={() => setSuccess(true)} />}
             {tipo === 'patrocinador' && <FormPatrocinador onSuccess={() => setSuccess(true)} />}
             {tipo === 'beneficiario' && <FormBeneficiario onSuccess={() => setSuccess(true)} />}
+            {tipo === 'funcionario' && <FormFuncionario onSuccess={() => setSuccess(true)} />}
           </div>
 
           <p className="text-sm text-[#475569] mt-6 text-center">
