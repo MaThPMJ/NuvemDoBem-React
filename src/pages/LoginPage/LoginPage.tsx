@@ -17,7 +17,7 @@ export default function LoginPage() {
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>()
 
   function onSubmit(data: LoginFormData) {
-    login(data.email)
+    login(data.email, data.senha)
     navigate('/dashboard')
   }
 
