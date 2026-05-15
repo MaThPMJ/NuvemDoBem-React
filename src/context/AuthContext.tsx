@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, type ReactNode } from 'react'
 
 interface User {
@@ -9,7 +10,7 @@ interface User {
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
-  login: (email: string, senha: string) => boolean
+  login: (email: string) => boolean
   logout: () => void
 }
 
@@ -32,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   })
 
-  function login(email: string, _senha: string): boolean {
+  function login(email: string): boolean {
     const mockUser: User = { nome: parseNome(email), cargo: 'Funcionário', email }
     setUser(mockUser)
     localStorage.setItem('nuvem_user', JSON.stringify(mockUser))
