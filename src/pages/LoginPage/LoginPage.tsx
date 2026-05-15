@@ -1,9 +1,9 @@
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import SectionTitle from '../../Components/ui/SectionTitle'
 import Input from '../../Components/ui/Input'
 import Button from '../../Components/ui/Button'
+import { useAuth } from '../../context/AuthContext'
 
 interface LoginFormData {
   email: string
@@ -11,13 +11,14 @@ interface LoginFormData {
 }
 
 export default function LoginPage() {
-  const [success, setSuccess] = useState('')
+  const { login } = useAuth()
+  const navigate = useNavigate()
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<LoginFormData>()
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>()
 
-  function onSubmit() {
-    setSuccess('Login realizado com sucesso!')
-    reset()
+  function onSubmit(data: LoginFormData) {
+    login(data.email, data.senha)
+    navigate('/dashboard')
   }
 
   return (
@@ -50,8 +51,6 @@ export default function LoginPage() {
         />
 
         <Button type="submit">Entrar</Button>
-
-        {success && <p className="text-green-800" aria-live="polite">{success}</p>}
       </form>
       <p className="text-sm text-[#475569] mt-6 text-center">
         Não tem conta?{' '}
