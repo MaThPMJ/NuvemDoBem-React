@@ -80,3 +80,11 @@ export interface Doacao {
   dataDoacao: string
   patrocinador?: Patrocinador
 }
+
+export interface Mensagem {
+  idMensagem: number
+  conteudo: string
+  dataEnvio: string
+  remetente?: Integrante | null
+  destinatario?: Dentista | null
+}

@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch { /* API offline */ }
     }
 
-    // Dentistas: tenta encontrar pelo email para mostrar nome real (sem verificar senha)
+    // Dentistas: autenticação real com email + senha (API expõe senha no GET /dentistas)
     if (tipo === 'dentista') {
       try {
         const res = await fetch(`${BASE_URL}/dentistas`, {
@@ -81,14 +81,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
         if (res.ok) {
           const lista = (await res.json()) as Dentista[]
-          const encontrado = lista.find(d => d.email === email)
+          const encontrado = lista.find(d => d.email === email && (d as unknown as Record<string, unknown>)['senha'] === senha)
           if (encontrado) {
             const userData: User = {
               nome: encontrado.nome,
               cargo: 'Dentista',
               email: encontrado.email,
               tipo: 'dentista',
-              isDemo: true,
+              isDemo: false,
             }
             setUser(userData)
             localStorage.setItem('nuvem_user', JSON.stringify(userData))

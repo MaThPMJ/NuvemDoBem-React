@@ -136,6 +136,14 @@ export default function LoginPage() {
             <p>pedro.tdb@tdb.org / tdb002</p>
           </div>
         )}
+        {apiStatus === 'online' && tipo === 'dentista' && (
+          <div className="bg-[#EAF2FF] rounded-lg px-3 py-2 text-xs text-[#1E4E8C]">
+            <p className="font-semibold mb-1">Credenciais reais disponíveis:</p>
+            <p>r.alves@dental.com / dent001</p>
+            <p>p.melo@dental.com / dent002</p>
+            <p>f.costa@dental.com / dent003</p>
+          </div>
+        )}
       </form>
 
       <p className="text-sm text-[#475569] mt-6 text-center">

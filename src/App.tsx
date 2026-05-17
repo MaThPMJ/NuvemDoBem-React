@@ -22,6 +22,7 @@ import IntegracoesPage from './pages/IntegracoesPage/IntegracoesPage'
 import DentistaAreaPage from './pages/DentistaAreaPage/DentistaAreaPage'
 import BeneficiarioAreaPage from './pages/BeneficiarioAreaPage/BeneficiarioAreaPage'
 import PatrocinadorAreaPage from './pages/PatrocinadorAreaPage/PatrocinadorAreaPage'
+import ChatPage from './pages/ChatPage/ChatPage'
 
 function PublicLayout() {
   return (
@@ -80,6 +81,9 @@ export default function App() {
 
               {/* Área do Patrocinador */}
               <Route path="/area-patrocinador" element={<PatrocinadorAreaPage />} />
+
+              {/* Chat — funcionários */}
+              <Route path="/chat" element={<ChatPage />} />
 
               {/* Compartilhado entre todos */}
               <Route path="/perfil" element={<PerfilPage />} />

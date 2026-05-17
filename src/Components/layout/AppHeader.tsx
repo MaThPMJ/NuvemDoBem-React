@@ -14,10 +14,12 @@ const navByTipo: Record<UserTipo, NavItem[]> = {
     { to: '/casos', label: 'Casos' },
     { to: '/relatorios', label: 'Relatórios' },
     { to: '/integracoes', label: 'Integrações' },
+    { to: '/chat', label: 'Chat' },
   ],
   dentista: [
     { to: '/area-dentista', label: 'Início' },
     { to: '/casos', label: 'Meus Casos' },
+    { to: '/prontuario', label: 'Novo Prontuário' },
   ],
   beneficiario: [
     { to: '/area-beneficiario', label: 'Meu Histórico' },
