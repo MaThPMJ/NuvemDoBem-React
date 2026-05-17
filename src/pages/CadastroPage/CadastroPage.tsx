@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import SectionTitle from '../../Components/ui/SectionTitle'
 import Input from '../../Components/ui/Input'
 import Button from '../../Components/ui/Button'
+import { apiFetch } from '../../services/api'
 
 type TipoCadastro = 'dentista' | 'patrocinador' | 'beneficiario' | 'funcionario'
 
@@ -18,7 +19,9 @@ interface DentistaForm {
 }
 
 interface PatrocinadorForm {
-  nomeRazao: string
+  nome: string
+  empresa: string
+  tipoApoio: string
   email: string
   senha: string
   cnpjCpf: string
@@ -69,10 +72,39 @@ const tipos = [
   },
 ]
 
-function FormDentista({ onSuccess }: { onSuccess: () => void }) {
+// Tenta a API e chama onSuccess independente do resultado (modo demonstrativo)
+async function tryRegister(path: string, body: Record<string, unknown>): Promise<boolean> {
+  try {
+    await apiFetch(path, { method: 'POST', body: JSON.stringify(body) })
+    return true
+  } catch {
+    return false
+  }
+}
+
+function FormDentista({ onSuccess }: { onSuccess: (demo: boolean) => void }) {
+  const [loading, setLoading] = useState(false)
   const { register, handleSubmit, formState: { errors } } = useForm<DentistaForm>()
+
+  async function onSubmit(data: DentistaForm) {
+    setLoading(true)
+    const ok = await tryRegister('/dentistas', {
+      nome: data.nome,
+      email: data.email,
+      senha: data.senha,
+      cro: data.cro,
+      especialidade: data.especialidade,
+      telefone: data.telefone,
+      cep: data.cep,
+      cidade: '',
+      status: 'ativo',
+    })
+    setLoading(false)
+    onSuccess(!ok)
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSuccess)} className="grid gap-4" noValidate>
+    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4" noValidate>
       <Input label="Nome completo" name="nome"
         registration={register('nome', { required: 'Nome é obrigatório.' })}
         error={errors.nome?.message} />
@@ -103,18 +135,42 @@ function FormDentista({ onSuccess }: { onSuccess: () => void }) {
           pattern: { value: /^\d{5}-?\d{3}$/, message: 'Informe um CEP válido (ex: 01310-100).' },
         })}
         error={errors.cep?.message} />
-      <Button type="submit">Cadastrar</Button>
+      <Button type="submit">{loading ? 'Cadastrando...' : 'Cadastrar'}</Button>
     </form>
   )
 }
 
-function FormPatrocinador({ onSuccess }: { onSuccess: () => void }) {
+function FormPatrocinador({ onSuccess }: { onSuccess: (demo: boolean) => void }) {
+  const [loading, setLoading] = useState(false)
   const { register, handleSubmit, formState: { errors } } = useForm<PatrocinadorForm>()
+
+  async function onSubmit(data: PatrocinadorForm) {
+    setLoading(true)
+    const ok = await tryRegister('/patrocinadores', {
+      nome: data.nome,
+      empresa: data.empresa,
+      tipoApoio: data.tipoApoio,
+      contato: data.email,
+      email: data.email,
+      senha: data.senha,
+      cnpjCpf: data.cnpjCpf,
+      telefone: data.telefone,
+    })
+    setLoading(false)
+    onSuccess(!ok)
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSuccess)} className="grid gap-4" noValidate>
-      <Input label="Nome / Razão Social" name="nomeRazao"
-        registration={register('nomeRazao', { required: 'Nome ou Razão Social é obrigatório.' })}
-        error={errors.nomeRazao?.message} />
+    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4" noValidate>
+      <Input label="Nome / Razão Social" name="nome"
+        registration={register('nome', { required: 'Nome ou Razão Social é obrigatório.' })}
+        error={errors.nome?.message} />
+      <Input label="Empresa" name="empresa"
+        registration={register('empresa', { required: 'Empresa é obrigatória.' })}
+        error={errors.empresa?.message} />
+      <Input label="Tipo de apoio (ex: Financeiro, Equipamentos)" name="tipoApoio"
+        registration={register('tipoApoio', { required: 'Tipo de apoio é obrigatório.' })}
+        error={errors.tipoApoio?.message} />
       <Input label="E-mail" name="email" type="email"
         registration={register('email', {
           required: 'E-mail é obrigatório.',
@@ -133,15 +189,34 @@ function FormPatrocinador({ onSuccess }: { onSuccess: () => void }) {
       <Input label="Telefone" name="telefone" type="tel"
         registration={register('telefone', { required: 'Telefone é obrigatório.' })}
         error={errors.telefone?.message} />
-      <Button type="submit">Cadastrar</Button>
+      <Button type="submit">{loading ? 'Cadastrando...' : 'Cadastrar'}</Button>
     </form>
   )
 }
 
-function FormBeneficiario({ onSuccess }: { onSuccess: () => void }) {
+function FormBeneficiario({ onSuccess }: { onSuccess: (demo: boolean) => void }) {
+  const [loading, setLoading] = useState(false)
   const { register, handleSubmit, formState: { errors } } = useForm<BeneficiarioForm>()
+
+  async function onSubmit(data: BeneficiarioForm) {
+    setLoading(true)
+    const ok = await tryRegister('/beneficiarios', {
+      nome: data.nome,
+      email: data.email,
+      senha: data.senha,
+      cpf: data.cpf,
+      dataNascimento: data.dataNascimento,
+      telefone: data.telefone,
+      cep: data.cep,
+      cidade: '',
+      dataCadastro: new Date().toISOString().split('T')[0],
+    })
+    setLoading(false)
+    onSuccess(!ok)
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSuccess)} className="grid gap-4" noValidate>
+    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4" noValidate>
       <Input label="Nome completo" name="nome"
         registration={register('nome', { required: 'Nome é obrigatório.' })}
         error={errors.nome?.message} />
@@ -172,15 +247,29 @@ function FormBeneficiario({ onSuccess }: { onSuccess: () => void }) {
           pattern: { value: /^\d{5}-?\d{3}$/, message: 'Informe um CEP válido (ex: 01310-100).' },
         })}
         error={errors.cep?.message} />
-      <Button type="submit">Cadastrar</Button>
+      <Button type="submit">{loading ? 'Cadastrando...' : 'Cadastrar'}</Button>
     </form>
   )
 }
 
-function FormFuncionario({ onSuccess }: { onSuccess: () => void }) {
+function FormFuncionario({ onSuccess }: { onSuccess: (demo: boolean) => void }) {
+  const [loading, setLoading] = useState(false)
   const { register, handleSubmit, formState: { errors } } = useForm<FuncionarioForm>()
+
+  async function onSubmit(data: FuncionarioForm) {
+    setLoading(true)
+    const ok = await tryRegister('/integrantes', {
+      nome: data.nome,
+      email: data.email,
+      cargo: data.cargo,
+      senha: data.senha,
+    })
+    setLoading(false)
+    onSuccess(!ok)
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSuccess)} className="grid gap-4" noValidate>
+    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4" noValidate>
       <Input label="Nome completo" name="nome"
         registration={register('nome', { required: 'Nome é obrigatório.' })}
         error={errors.nome?.message} />
@@ -199,7 +288,7 @@ function FormFuncionario({ onSuccess }: { onSuccess: () => void }) {
           minLength: { value: 6, message: 'Mínimo de 6 caracteres.' },
         })}
         error={errors.senha?.message} />
-      <Button type="submit">Cadastrar</Button>
+      <Button type="submit">{loading ? 'Cadastrando...' : 'Cadastrar'}</Button>
     </form>
   )
 }
@@ -207,16 +296,29 @@ function FormFuncionario({ onSuccess }: { onSuccess: () => void }) {
 export default function CadastroPage() {
   const [tipo, setTipo] = useState<TipoCadastro | null>(null)
   const [success, setSuccess] = useState(false)
+  const [isDemo, setIsDemo] = useState(false)
+
+  function handleSuccess(demo: boolean) {
+    setIsDemo(demo)
+    setSuccess(true)
+  }
 
   if (success) {
     return (
       <section className="py-12 max-w-[480px] mx-auto text-center">
         <i className="fa-solid fa-circle-check text-5xl text-green-600 mb-4 block" />
         <h2 className="text-2xl font-bold text-[#0F172A] mb-2">Cadastro realizado!</h2>
-        <p className="text-[#475569] mb-6">Seu cadastro foi concluído com sucesso.</p>
-        <Link to="/login" className="inline-block rounded-lg px-5 py-3 font-semibold bg-[#1E4E8C] text-white no-underline hover:brightness-90 transition-all">
-          Ir para o login
-        </Link>
+        <p className="text-[#475569] mb-2">Seu cadastro foi concluído com sucesso.</p>
+        {isDemo && (
+          <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4 inline-block">
+            ⚠ Modo demonstrativo — API indisponível no momento
+          </p>
+        )}
+        <div className="mt-4">
+          <Link to="/login" className="inline-block rounded-lg px-5 py-3 font-semibold bg-[#1E4E8C] text-white no-underline hover:brightness-90 transition-all">
+            Ir para o login
+          </Link>
+        </div>
       </section>
     )
   }
@@ -270,10 +372,10 @@ export default function CadastroPage() {
           </div>
 
           <div className="bg-white border border-[#E2E8F0] rounded-xl p-6">
-            {tipo === 'dentista' && <FormDentista onSuccess={() => setSuccess(true)} />}
-            {tipo === 'patrocinador' && <FormPatrocinador onSuccess={() => setSuccess(true)} />}
-            {tipo === 'beneficiario' && <FormBeneficiario onSuccess={() => setSuccess(true)} />}
-            {tipo === 'funcionario' && <FormFuncionario onSuccess={() => setSuccess(true)} />}
+            {tipo === 'dentista' && <FormDentista onSuccess={handleSuccess} />}
+            {tipo === 'patrocinador' && <FormPatrocinador onSuccess={handleSuccess} />}
+            {tipo === 'beneficiario' && <FormBeneficiario onSuccess={handleSuccess} />}
+            {tipo === 'funcionario' && <FormFuncionario onSuccess={handleSuccess} />}
           </div>
 
           <p className="text-sm text-[#475569] mt-6 text-center">

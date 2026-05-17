@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import Header from './Components/layout/Header'
 import Footer from './Components/layout/Footer'
+import AppHeader from './Components/layout/AppHeader'
 import PrivateRoute from './Components/PrivateRoute'
 import HomePage from './pages/HomePage/HomePage'
 import SobrePage from './pages/SobrePage/SobrePage'
@@ -14,6 +15,13 @@ import LoginPage from './pages/LoginPage/LoginPage'
 import CadastroPage from './pages/CadastroPage/CadastroPage'
 import DashboardPage from './pages/DashboardPage/DashboardPage'
 import PerfilPage from './pages/PerfilPage/PerfilPage'
+import ProntuarioPage from './pages/ProntuarioPage/ProntuarioPage'
+import CasosPage from './pages/CasosPage/CasosPage'
+import RelatoriosPage from './pages/RelatoriosPage/RelatoriosPage'
+import IntegracoesPage from './pages/IntegracoesPage/IntegracoesPage'
+import DentistaAreaPage from './pages/DentistaAreaPage/DentistaAreaPage'
+import BeneficiarioAreaPage from './pages/BeneficiarioAreaPage/BeneficiarioAreaPage'
+import PatrocinadorAreaPage from './pages/PatrocinadorAreaPage/PatrocinadorAreaPage'
 
 function PublicLayout() {
   return (
@@ -24,6 +32,17 @@ function PublicLayout() {
       </main>
       <Footer />
     </>
+  )
+}
+
+function PrivateLayout() {
+  return (
+    <div className="min-h-screen bg-[#F7F9FC]">
+      <AppHeader />
+      <main>
+        <Outlet />
+      </main>
+    </div>
   )
 }
 
@@ -45,8 +64,26 @@ export default function App() {
           </Route>
 
           <Route element={<PrivateRoute />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/perfil" element={<PerfilPage />} />
+            <Route element={<PrivateLayout />}>
+              {/* Área do Funcionário (Integrante) */}
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/casos" element={<CasosPage />} />
+              <Route path="/prontuario" element={<ProntuarioPage />} />
+              <Route path="/relatorios" element={<RelatoriosPage />} />
+              <Route path="/integracoes" element={<IntegracoesPage />} />
+
+              {/* Área do Dentista */}
+              <Route path="/area-dentista" element={<DentistaAreaPage />} />
+
+              {/* Área do Beneficiário */}
+              <Route path="/area-beneficiario" element={<BeneficiarioAreaPage />} />
+
+              {/* Área do Patrocinador */}
+              <Route path="/area-patrocinador" element={<PatrocinadorAreaPage />} />
+
+              {/* Compartilhado entre todos */}
+              <Route path="/perfil" element={<PerfilPage />} />
+            </Route>
           </Route>
         </Routes>
       </AuthProvider>
