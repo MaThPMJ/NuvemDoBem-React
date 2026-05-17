@@ -4,6 +4,7 @@ import { getCasos } from '../../services/casoService'
 import { getHistoricosStatus } from '../../services/historicoStatusService'
 import { getDiagnosticos } from '../../services/diagnosticoService'
 import { getPedidosEncaminhamento, createPedidoEncaminhamento } from '../../services/pedidoEncaminhamentoService'
+import { useAuth } from '../../context/AuthContext'
 import type { Caso, HistoricoStatus, Diagnostico, PedidoEncaminhamento } from '../../types'
 
 function formatDate(iso: string): string {
@@ -43,6 +44,7 @@ interface DetailState {
 }
 
 export default function CasosPage() {
+  const { user } = useAuth()
   const [casos, setCasos] = useState<Caso[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -55,10 +57,17 @@ export default function CasosPage() {
 
   useEffect(() => {
     getCasos()
-      .then(setCasos)
+      .then(todos => {
+        // Dentista só vê os casos atribuídos a ele
+        if (user?.tipo === 'dentista') {
+          setCasos(todos.filter(c => c.dentista?.email === user.email))
+        } else {
+          setCasos(todos)
+        }
+      })
       .catch(() => setError('Não foi possível carregar os casos.'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [user])
 
   function openCaso(caso: Caso) {
     setSelectedCaso(caso)
@@ -80,7 +89,7 @@ export default function CasosPage() {
     if (!selectedCaso) return
     setEncLoading(true)
     try {
-      const novo = await createPedidoEncaminhamento({ casoId: selectedCaso.idCaso })
+      const novo = await createPedidoEncaminhamento({ caso: { idCaso: selectedCaso.idCaso } })
       setDetail(s => ({ ...s, pedidos: [...s.pedidos, novo] }))
       setEncSuccess(true)
     } catch {

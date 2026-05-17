@@ -5,7 +5,7 @@ export const getPedidosEncaminhamento = (): Promise<PedidoEncaminhamento[]> =>
   apiFetch('/pedidos-encaminhamento') as Promise<PedidoEncaminhamento[]>
 
 export const createPedidoEncaminhamento = (
-  data: Omit<PedidoEncaminhamento, 'id' | 'status'>,
+  data: { caso?: { idCaso: number }; dentista?: { idDentista: number } },
 ): Promise<PedidoEncaminhamento> =>
   apiFetch('/pedidos-encaminhamento', { method: 'POST', body: JSON.stringify(data) }) as Promise<PedidoEncaminhamento>
 
