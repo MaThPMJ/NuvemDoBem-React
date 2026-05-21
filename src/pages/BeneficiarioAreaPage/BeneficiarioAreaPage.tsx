@@ -4,22 +4,6 @@ import { getCasos } from '../../services/casoService'
 import { getDiagnosticos } from '../../services/diagnosticoService'
 import type { Caso, Diagnostico } from '../../types'
 
-const mockCasos: Caso[] = [
-  {
-    idCaso: 1, dataAbertura: '2025-03-10T00:00:00', status: 'EM_ANDAMENTO',
-    dentista: { idDentista: 1, nome: 'Dr. Carlos Andrade', especialidade: 'Ortodontia', email: 'carlos@demo.com' },
-  },
-  {
-    idCaso: 2, dataAbertura: '2025-01-15T00:00:00', status: 'CONCLUIDO', dataFechamento: '2025-02-20T00:00:00',
-    dentista: { idDentista: 2, nome: 'Dra. Fernanda Lima', especialidade: 'Endodontia', email: 'fernanda@demo.com' },
-  },
-]
-
-const mockDiagnosticos: Diagnostico[] = [
-  { idDiagnostico: 1, descricao: 'Cárie molar inferior direito', dataDiagnostico: '2025-03-12T00:00:00', procedimento: 'Restauração' },
-  { idDiagnostico: 2, descricao: 'Avaliação ortodôntica inicial', dataDiagnostico: '2025-01-18T00:00:00', procedimento: 'Aparelho fixo' },
-]
-
 const statusStyle: Record<string, string> = {
   EM_ANDAMENTO: 'bg-blue-100 text-blue-700',
   PENDENTE: 'bg-yellow-100 text-yellow-700',
@@ -41,24 +25,16 @@ export default function BeneficiarioAreaPage() {
   const { user } = useAuth()
   const [casos, setCasos] = useState<Caso[]>([])
   const [diagnosticos, setDiagnosticos] = useState<Diagnostico[]>([])
-  const [isDemo, setIsDemo] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     Promise.all([getCasos(), getDiagnosticos()])
       .then(([todosCasos, todosDiag]) => {
-        const meusCasos = todosCasos.filter(c => c.beneficiario?.email === user?.email)
-        const meusDiag = todosDiag.filter(d => d.beneficiario?.email === user?.email)
-        if (meusCasos.length > 0) {
-          setCasos(meusCasos)
-          setDiagnosticos(meusDiag)
-        } else {
-          setCasos(mockCasos)
-          setDiagnosticos(mockDiagnosticos)
-          setIsDemo(true)
-        }
+        setCasos(todosCasos.filter(c => c.beneficiario?.email === user?.email))
+        setDiagnosticos(todosDiag.filter(d => d.beneficiario?.email === user?.email))
       })
-      .catch(() => { setCasos(mockCasos); setDiagnosticos(mockDiagnosticos); setIsDemo(true) })
+      .catch(() => setError('Não foi possível carregar seus dados. Tente novamente mais tarde.'))
       .finally(() => setLoading(false))
   }, [user?.email])
 
@@ -69,10 +45,10 @@ export default function BeneficiarioAreaPage() {
         <p className="text-sm text-[#475569] mt-1">Seu histórico de atendimentos e diagnósticos.</p>
       </div>
 
-      {isDemo && (
-        <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium rounded-lg px-3 py-2 mb-5">
-          <i className="fa-solid fa-triangle-exclamation" />
-          Exibindo dados demonstrativos — nenhum histórico encontrado para o seu e-mail.
+      {error && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-xs font-medium rounded-lg px-3 py-2 mb-5">
+          <i className="fa-solid fa-circle-exclamation" />
+          {error}
         </div>
       )}
 

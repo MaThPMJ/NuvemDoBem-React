@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { getDentistas } from '../../services/dentistaService'
 import { useAuth } from '../../context/AuthContext'
-import { mockDentistas } from '../../mocks/dentistas'
 import type { Dentista } from '../../types'
 
 interface Mensagem {
@@ -31,6 +30,7 @@ type Conversas = Record<number, Mensagem[]>
 export default function ChatPage() {
   const { user } = useAuth()
   const [dentistas, setDentistas] = useState<Dentista[]>([])
+  const [error, setError] = useState('')
   const [query, setQuery] = useState('')
   const [dentistaSelecionado, setDentistaSelecionado] = useState<Dentista | null>(null)
   const [conversas, setConversas] = useState<Conversas>({})
@@ -42,7 +42,7 @@ export default function ChatPage() {
   useEffect(() => {
     getDentistas()
       .then(setDentistas)
-      .catch(() => setDentistas(mockDentistas))
+      .catch(() => setError('Não foi possível carregar a lista de dentistas.'))
   }, [])
 
   useEffect(() => {
@@ -76,7 +76,6 @@ export default function ChatPage() {
     setTexto('')
     inputRef.current?.focus()
 
-    // Auto-resposta do dentista após delay
     setDigitando(true)
     const delay = 1000 + Math.random() * 1500
     setTimeout(() => {
@@ -104,6 +103,13 @@ export default function ChatPage() {
   return (
     <div className="max-w-[1200px] mx-auto px-4 py-6">
       <h1 className="text-xl font-bold text-[#0F172A] mb-6">Chat com Dentistas</h1>
+
+      {error && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-xs font-medium rounded-lg px-3 py-2 mb-4">
+          <i className="fa-solid fa-circle-exclamation" />
+          {error}
+        </div>
+      )}
 
       <div className="bg-white border border-[#E2E8F0] rounded-2xl overflow-hidden flex" style={{ height: '600px' }}>
         {/* Sidebar — lista de dentistas */}
@@ -165,9 +171,6 @@ export default function ChatPage() {
                 <p className="text-sm font-semibold text-[#0F172A]">{dentistaSelecionado.nome}</p>
                 <p className="text-xs text-[#475569]">{dentistaSelecionado.especialidade}</p>
               </div>
-              <span className="ml-auto text-xs bg-amber-100 text-amber-700 font-medium px-2 py-0.5 rounded-full">
-                DEMO
-              </span>
             </div>
 
             {/* Mensagens */}

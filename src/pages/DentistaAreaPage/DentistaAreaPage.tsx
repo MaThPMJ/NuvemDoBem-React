@@ -4,12 +4,6 @@ import { useAuth } from '../../context/AuthContext'
 import { getCasos } from '../../services/casoService'
 import type { Caso } from '../../types'
 
-const mockCasos: Caso[] = [
-  { idCaso: 1, dataAbertura: '2025-03-10T00:00:00', status: 'EM_ANDAMENTO', beneficiario: { idBeneficiario: 1, nome: 'Ana Paula Santos', email: 'ana@demo.com', dataCadastro: '2025-03-01' } },
-  { idCaso: 2, dataAbertura: '2025-04-02T00:00:00', status: 'PENDENTE', beneficiario: { idBeneficiario: 4, nome: 'Pedro Henrique Silva', email: 'pedro@demo.com', dataCadastro: '2025-03-20' } },
-  { idCaso: 3, dataAbertura: '2025-04-20T00:00:00', status: 'CONCLUIDO', dataFechamento: '2025-05-01T00:00:00', beneficiario: { idBeneficiario: 2, nome: 'Lucas Oliveira', email: 'lucas@demo.com', dataCadastro: '2025-03-14' } },
-]
-
 const statusStyle: Record<string, string> = {
   EM_ANDAMENTO: 'bg-blue-100 text-blue-700',
   PENDENTE: 'bg-yellow-100 text-yellow-700',
@@ -30,21 +24,13 @@ function formatDate(iso: string) {
 export default function DentistaAreaPage() {
   const { user } = useAuth()
   const [casos, setCasos] = useState<Caso[]>([])
-  const [isDemo, setIsDemo] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     getCasos()
-      .then(todos => {
-        const meus = todos.filter(c => c.dentista?.email === user?.email)
-        if (meus.length > 0) {
-          setCasos(meus)
-        } else {
-          setCasos(mockCasos)
-          setIsDemo(true)
-        }
-      })
-      .catch(() => { setCasos(mockCasos); setIsDemo(true) })
+      .then(todos => setCasos(todos.filter(c => c.dentista?.email === user?.email)))
+      .catch(() => setError('Não foi possível carregar seus casos. Tente novamente mais tarde.'))
       .finally(() => setLoading(false))
   }, [user?.email])
 
@@ -58,10 +44,10 @@ export default function DentistaAreaPage() {
         <p className="text-sm text-[#475569] mt-1">Aqui estão os casos sob sua responsabilidade.</p>
       </div>
 
-      {isDemo && (
-        <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium rounded-lg px-3 py-2 mb-5">
-          <i className="fa-solid fa-triangle-exclamation" />
-          Exibindo casos demonstrativos — nenhum caso encontrado para o seu e-mail na API.
+      {error && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-xs font-medium rounded-lg px-3 py-2 mb-5">
+          <i className="fa-solid fa-circle-exclamation" />
+          {error}
         </div>
       )}
 

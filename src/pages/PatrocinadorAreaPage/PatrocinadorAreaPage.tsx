@@ -3,13 +3,6 @@ import { useAuth } from '../../context/AuthContext'
 import { getDoacoes } from '../../services/doacaoService'
 import type { Doacao } from '../../types'
 
-const mockDoacoes: Doacao[] = [
-  { idDoacao: 1, tipo: 'MONETARIO', valor: 5000, dataDoacao: '2025-03-15T00:00:00' },
-  { idDoacao: 2, tipo: 'MONETARIO', valor: 3500, dataDoacao: '2025-04-10T00:00:00' },
-  { idDoacao: 3, tipo: 'EQUIPAMENTO', valor: null, descricaoEquipamento: 'Kit odontológico completo (10 unidades)', dataDoacao: '2025-04-28T00:00:00' },
-  { idDoacao: 4, tipo: 'MONETARIO', valor: 2000, dataDoacao: '2025-05-05T00:00:00' },
-]
-
 function formatDate(iso: string) {
   const d = iso.split('T')[0].split('-')
   return `${d[2]}/${d[1]}/${d[0]}`
@@ -22,21 +15,13 @@ function tipoLabel(tipo: string) {
 export default function PatrocinadorAreaPage() {
   const { user } = useAuth()
   const [doacoes, setDoacoes] = useState<Doacao[]>([])
-  const [isDemo, setIsDemo] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     getDoacoes()
-      .then(todas => {
-        const minhas = todas.filter(d => d.patrocinador?.email === user?.email)
-        if (minhas.length > 0) {
-          setDoacoes(minhas)
-        } else {
-          setDoacoes(mockDoacoes)
-          setIsDemo(true)
-        }
-      })
-      .catch(() => { setDoacoes(mockDoacoes); setIsDemo(true) })
+      .then(todas => setDoacoes(todas.filter(d => d.patrocinador?.email === user?.email)))
+      .catch(() => setError('Não foi possível carregar suas doações. Tente novamente mais tarde.'))
       .finally(() => setLoading(false))
   }, [user?.email])
 
@@ -53,10 +38,10 @@ export default function PatrocinadorAreaPage() {
         <p className="text-sm text-[#475569] mt-1">Obrigado pelo seu apoio à Turma do Bem.</p>
       </div>
 
-      {isDemo && (
-        <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium rounded-lg px-3 py-2 mb-5">
-          <i className="fa-solid fa-triangle-exclamation" />
-          Exibindo dados demonstrativos — nenhuma doação encontrada para o seu e-mail.
+      {error && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-xs font-medium rounded-lg px-3 py-2 mb-5">
+          <i className="fa-solid fa-circle-exclamation" />
+          {error}
         </div>
       )}
 

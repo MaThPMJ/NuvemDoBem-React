@@ -80,17 +80,9 @@ export default function AppHeader() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          {/* Badge de papel e modo demo */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs bg-[#EAF2FF] text-[#1E4E8C] font-medium px-2 py-0.5 rounded-full">
-              {roleLabelByTipo[tipo]}
-            </span>
-            {user?.isDemo && (
-              <span className="text-xs bg-amber-100 text-amber-700 font-semibold px-2 py-0.5 rounded-full">
-                DEMO
-              </span>
-            )}
-          </div>
+          <span className="text-xs bg-[#EAF2FF] text-[#1E4E8C] font-medium px-2 py-0.5 rounded-full">
+            {roleLabelByTipo[tipo]}
+          </span>
 
           <NavLink
             to="/perfil"
@@ -124,11 +116,6 @@ export default function AppHeader() {
             <span className="text-xs bg-[#EAF2FF] text-[#1E4E8C] font-medium px-2 py-0.5 rounded-full">
               {roleLabelByTipo[tipo]}
             </span>
-            {user?.isDemo && (
-              <span className="text-xs bg-amber-100 text-amber-700 font-semibold px-2 py-0.5 rounded-full">
-                DEMO
-              </span>
-            )}
           </div>
           <nav className="flex flex-col gap-1">
             {navItems.map(({ to, label }) => (

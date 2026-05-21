@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getBeneficiarios } from '../../../services/beneficiarioService'
-import { mockBeneficiarios } from '../../../mocks/beneficiarios'
 import type { Beneficiario } from '../../../types'
 
 function formatDate(iso: string): string {
@@ -12,13 +11,13 @@ function formatDate(iso: string): string {
 export default function BeneficiariosTab() {
   const [beneficiarios, setBeneficiarios] = useState<Beneficiario[]>([])
   const [loading, setLoading] = useState(true)
-  const [isOffline, setIsOffline] = useState(false)
+  const [error, setError] = useState('')
   const [query, setQuery] = useState('')
 
   useEffect(() => {
     getBeneficiarios()
-      .then(data => { setBeneficiarios(data); setIsOffline(false) })
-      .catch(() => { setBeneficiarios(mockBeneficiarios); setIsOffline(true) })
+      .then(data => setBeneficiarios(data))
+      .catch(() => setError('Não foi possível carregar os beneficiários. Tente novamente mais tarde.'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -36,10 +35,10 @@ export default function BeneficiariosTab() {
 
   return (
     <div>
-      {isOffline && (
-        <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium rounded-lg px-3 py-2 mb-4">
-          <i className="fa-solid fa-triangle-exclamation" />
-          API indisponível — exibindo dados demonstrativos
+      {error && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-xs font-medium rounded-lg px-3 py-2 mb-4">
+          <i className="fa-solid fa-circle-exclamation" />
+          {error}
         </div>
       )}
 
