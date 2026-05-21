@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { getBeneficiarios } from '../../../services/beneficiarioService'
 import type { Beneficiario } from '../../../types'
 
@@ -42,7 +41,7 @@ export default function BeneficiariosTab() {
         </div>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div className="mb-4">
         <input
           type="search"
           placeholder="Buscar beneficiário por nome..."
@@ -50,12 +49,6 @@ export default function BeneficiariosTab() {
           onChange={e => setQuery(e.target.value)}
           className="w-full max-w-sm border border-[#E2E8F0] rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1E4E8C]"
         />
-        <Link
-          to="/prontuario"
-          className="shrink-0 bg-[#F29E1F] text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-[#d98b0d] transition-colors no-underline"
-        >
-          + Novo Caso
-        </Link>
       </div>
 
       {filtered.length === 0 ? (
