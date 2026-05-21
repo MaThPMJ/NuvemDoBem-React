@@ -34,6 +34,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [apiStatus, setApiStatus] = useState<ApiStatus>('checking')
   const [tipo, setTipo] = useState<UserTipo>('integrante')
+  const [error, setError] = useState('')
 
   useEffect(() => {
     fetch('https://javasprint.onrender.com/integrantes')
@@ -44,32 +45,37 @@ export default function LoginPage() {
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>()
 
   async function onSubmit(data: LoginFormData) {
+    setError('')
     setLoading(true)
-    await login(data.email, data.senha, tipo)
-    setLoading(false)
-    navigate(homeByTipo[tipo])
+    try {
+      await login(data.email, data.senha, tipo)
+      navigate(homeByTipo[tipo])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao fazer login.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <section className="py-12 max-w-[420px] mx-auto">
       <SectionTitle>Acesse sua conta</SectionTitle>
 
-      {/* Status da API */}
       <div className={`flex items-center gap-2 text-xs font-medium rounded-lg px-3 py-2 mb-4 border ${
         apiStatus === 'checking'
           ? 'bg-gray-50 border-gray-200 text-gray-500'
           : apiStatus === 'online'
             ? 'bg-green-50 border-green-200 text-green-700'
-            : 'bg-amber-50 border-amber-200 text-amber-700'
+            : 'bg-red-50 border-red-200 text-red-700'
       }`}>
         <span className={`w-2 h-2 rounded-full shrink-0 ${
           apiStatus === 'checking' ? 'bg-gray-400 animate-pulse'
           : apiStatus === 'online' ? 'bg-green-500'
-          : 'bg-amber-500'
+          : 'bg-red-500'
         }`} />
         {apiStatus === 'checking' && 'Verificando conexão com a API...'}
         {apiStatus === 'online' && 'API conectada'}
-        {apiStatus === 'offline' && 'API offline — modo demonstrativo ativo'}
+        {apiStatus === 'offline' && 'API temporariamente indisponível — tente novamente mais tarde'}
       </div>
 
       <form
@@ -77,7 +83,6 @@ export default function LoginPage() {
         className="bg-white border border-[#E2E8F0] rounded-xl p-6 grid gap-4"
         noValidate
       >
-        {/* Seletor de papel */}
         <div>
           <p className="text-sm font-medium text-[#0F172A] mb-2">Entrar como:</p>
           <div className="grid grid-cols-2 gap-2">
@@ -85,7 +90,7 @@ export default function LoginPage() {
               <button
                 key={opt.value}
                 type="button"
-                onClick={() => setTipo(opt.value)}
+                onClick={() => { setTipo(opt.value); setError('') }}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all cursor-pointer ${
                   tipo === opt.value
                     ? 'border-[#1E4E8C] bg-[#EAF2FF] text-[#1E4E8C]'
@@ -97,13 +102,6 @@ export default function LoginPage() {
               </button>
             ))}
           </div>
-
-          {tipo !== 'integrante' && (
-            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2">
-              <i className="fa-solid fa-circle-info mr-1" />
-              Este perfil não possui autenticação real na API — login sempre em modo demonstrativo.
-            </p>
-          )}
         </div>
 
         <Input
@@ -127,23 +125,13 @@ export default function LoginPage() {
           error={errors.senha?.message}
         />
 
-        <Button type="submit">{loading ? 'Entrando...' : 'Entrar'}</Button>
+        {error && (
+          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            {error}
+          </p>
+        )}
 
-        {apiStatus === 'online' && tipo === 'integrante' && (
-          <div className="bg-[#EAF2FF] rounded-lg px-3 py-2 text-xs text-[#1E4E8C]">
-            <p className="font-semibold mb-1">Credenciais reais disponíveis:</p>
-            <p>juliana.tdb@tdb.org / tdb001</p>
-            <p>pedro.tdb@tdb.org / tdb002</p>
-          </div>
-        )}
-        {apiStatus === 'online' && tipo === 'dentista' && (
-          <div className="bg-[#EAF2FF] rounded-lg px-3 py-2 text-xs text-[#1E4E8C]">
-            <p className="font-semibold mb-1">Credenciais reais disponíveis:</p>
-            <p>r.alves@dental.com / dent001</p>
-            <p>p.melo@dental.com / dent002</p>
-            <p>f.costa@dental.com / dent003</p>
-          </div>
-        )}
+        <Button type="submit">{loading ? 'Entrando...' : 'Entrar'}</Button>
       </form>
 
       <p className="text-sm text-[#475569] mt-6 text-center">

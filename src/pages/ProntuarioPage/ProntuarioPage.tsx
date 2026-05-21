@@ -93,11 +93,9 @@ export default function ProntuarioPage() {
 
     const hoje = new Date().toISOString()
 
-    // Tenta criar o caso na API; se o backend retornar erro (bug conhecido no POST /casos),
-    // continua em modo demonstrativo para não bloquear o fluxo do usuário.
-    let apiRegistrado = false
+    const dataAbertura = hoje.split('T')[0]
+
     try {
-      const dataAbertura = hoje.split('T')[0]
       const casoBody: Record<string, unknown> = {
         dataAbertura,
         status: 'EM_ANDAMENTO',
@@ -130,14 +128,11 @@ export default function ProntuarioPage() {
           caso: { idCaso: caso.idCaso },
         }),
       })
-
-      apiRegistrado = true
-    } catch {
-      // API retornou erro — continua com stepper demonstrativo
-    }
-
-    if (!apiRegistrado) {
-      setSubmitError('⚠ API retornou erro no registro — fluxo exibido em modo demonstrativo.')
+    } catch (err) {
+      setSteps({ caso: 'error', salesforce: 'idle', drive: 'idle' })
+      setSubmitError(err instanceof Error ? err.message : 'Erro ao registrar caso. Tente novamente.')
+      setSubmitting(false)
+      return
     }
 
     setSteps({ caso: 'done', salesforce: 'loading', drive: 'idle' })

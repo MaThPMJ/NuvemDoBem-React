@@ -15,7 +15,6 @@ interface DentistaForm {
   cro: string
   especialidade: string
   telefone: string
-  cep: string
 }
 
 interface PatrocinadorForm {
@@ -35,7 +34,6 @@ interface BeneficiarioForm {
   cpf: string
   dataNascimento: string
   telefone: string
-  cep: string
 }
 
 interface FuncionarioForm {
@@ -72,35 +70,33 @@ const tipos = [
   },
 ]
 
-// Tenta a API e chama onSuccess independente do resultado (modo demonstrativo)
-async function tryRegister(path: string, body: Record<string, unknown>): Promise<boolean> {
-  try {
-    await apiFetch(path, { method: 'POST', body: JSON.stringify(body) })
-    return true
-  } catch {
-    return false
-  }
-}
-
-function FormDentista({ onSuccess }: { onSuccess: (demo: boolean) => void }) {
+function FormDentista({ onSuccess }: { onSuccess: () => void }) {
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const { register, handleSubmit, formState: { errors } } = useForm<DentistaForm>()
 
   async function onSubmit(data: DentistaForm) {
+    setError('')
     setLoading(true)
-    const ok = await tryRegister('/dentistas', {
-      nome: data.nome,
-      email: data.email,
-      senha: data.senha,
-      cro: data.cro,
-      especialidade: data.especialidade,
-      telefone: data.telefone,
-      cep: data.cep,
-      cidade: '',
-      status: 'ativo',
-    })
-    setLoading(false)
-    onSuccess(!ok)
+    try {
+      await apiFetch('/dentistas', {
+        method: 'POST',
+        body: JSON.stringify({
+          idDentista: Date.now() % 100000,
+          nome: data.nome,
+          email: data.email,
+          senha: data.senha,
+          cro: data.cro,
+          especialidade: data.especialidade,
+          telefone: data.telefone,
+        }),
+      })
+      onSuccess()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao realizar cadastro. Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -129,35 +125,44 @@ function FormDentista({ onSuccess }: { onSuccess: (demo: boolean) => void }) {
       <Input label="Telefone" name="telefone" type="tel"
         registration={register('telefone', { required: 'Telefone é obrigatório.' })}
         error={errors.telefone?.message} />
-      <Input label="CEP" name="cep"
-        registration={register('cep', {
-          required: 'CEP é obrigatório.',
-          pattern: { value: /^\d{5}-?\d{3}$/, message: 'Informe um CEP válido (ex: 01310-100).' },
-        })}
-        error={errors.cep?.message} />
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+      )}
       <Button type="submit">{loading ? 'Cadastrando...' : 'Cadastrar'}</Button>
     </form>
   )
 }
 
-function FormPatrocinador({ onSuccess }: { onSuccess: (demo: boolean) => void }) {
+function FormPatrocinador({ onSuccess }: { onSuccess: () => void }) {
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const { register, handleSubmit, formState: { errors } } = useForm<PatrocinadorForm>()
 
   async function onSubmit(data: PatrocinadorForm) {
+    setError('')
     setLoading(true)
-    const ok = await tryRegister('/patrocinadores', {
-      nome: data.nome,
-      empresa: data.empresa,
-      tipoApoio: data.tipoApoio,
-      contato: data.email,
-      email: data.email,
-      senha: data.senha,
-      cnpjCpf: data.cnpjCpf,
-      telefone: data.telefone,
-    })
-    setLoading(false)
-    onSuccess(!ok)
+    try {
+      await apiFetch('/patrocinadores', {
+        method: 'POST',
+        body: JSON.stringify({
+          idPatrocinador: Date.now() % 100000,
+          nome: data.nome,
+          empresa: data.empresa,
+          tipoApoio: data.tipoApoio,
+          contato: data.email,
+          email: data.email,
+          senha: data.senha,
+          cnpjCpf: data.cnpjCpf,
+          telefone: data.telefone,
+          anonimo: 'N',
+        }),
+      })
+      onSuccess()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao realizar cadastro. Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -189,30 +194,41 @@ function FormPatrocinador({ onSuccess }: { onSuccess: (demo: boolean) => void })
       <Input label="Telefone" name="telefone" type="tel"
         registration={register('telefone', { required: 'Telefone é obrigatório.' })}
         error={errors.telefone?.message} />
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+      )}
       <Button type="submit">{loading ? 'Cadastrando...' : 'Cadastrar'}</Button>
     </form>
   )
 }
 
-function FormBeneficiario({ onSuccess }: { onSuccess: (demo: boolean) => void }) {
+function FormBeneficiario({ onSuccess }: { onSuccess: () => void }) {
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const { register, handleSubmit, formState: { errors } } = useForm<BeneficiarioForm>()
 
   async function onSubmit(data: BeneficiarioForm) {
+    setError('')
     setLoading(true)
-    const ok = await tryRegister('/beneficiarios', {
-      nome: data.nome,
-      email: data.email,
-      senha: data.senha,
-      cpf: data.cpf,
-      dataNascimento: data.dataNascimento,
-      telefone: data.telefone,
-      cep: data.cep,
-      cidade: '',
-      dataCadastro: new Date().toISOString().split('T')[0],
-    })
-    setLoading(false)
-    onSuccess(!ok)
+    try {
+      await apiFetch('/beneficiarios', {
+        method: 'POST',
+        body: JSON.stringify({
+          idBeneficiario: Date.now() % 100000,
+          nome: data.nome,
+          email: data.email,
+          senha: data.senha,
+          cpf: data.cpf,
+          dataNascimento: data.dataNascimento,
+          telefone: data.telefone,
+        }),
+      })
+      onSuccess()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao realizar cadastro. Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -241,31 +257,39 @@ function FormBeneficiario({ onSuccess }: { onSuccess: (demo: boolean) => void })
       <Input label="Telefone" name="telefone" type="tel"
         registration={register('telefone', { required: 'Telefone é obrigatório.' })}
         error={errors.telefone?.message} />
-      <Input label="CEP" name="cep"
-        registration={register('cep', {
-          required: 'CEP é obrigatório.',
-          pattern: { value: /^\d{5}-?\d{3}$/, message: 'Informe um CEP válido (ex: 01310-100).' },
-        })}
-        error={errors.cep?.message} />
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+      )}
       <Button type="submit">{loading ? 'Cadastrando...' : 'Cadastrar'}</Button>
     </form>
   )
 }
 
-function FormFuncionario({ onSuccess }: { onSuccess: (demo: boolean) => void }) {
+function FormFuncionario({ onSuccess }: { onSuccess: () => void }) {
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const { register, handleSubmit, formState: { errors } } = useForm<FuncionarioForm>()
 
   async function onSubmit(data: FuncionarioForm) {
+    setError('')
     setLoading(true)
-    const ok = await tryRegister('/integrantes', {
-      nome: data.nome,
-      email: data.email,
-      cargo: data.cargo,
-      senha: data.senha,
-    })
-    setLoading(false)
-    onSuccess(!ok)
+    try {
+      await apiFetch('/integrantes', {
+        method: 'POST',
+        body: JSON.stringify({
+          idIntegrante: Date.now() % 100000,
+          nome: data.nome,
+          email: data.email,
+          cargo: data.cargo,
+          senha: data.senha,
+        }),
+      })
+      onSuccess()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao realizar cadastro. Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -288,6 +312,9 @@ function FormFuncionario({ onSuccess }: { onSuccess: (demo: boolean) => void }) 
           minLength: { value: 6, message: 'Mínimo de 6 caracteres.' },
         })}
         error={errors.senha?.message} />
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+      )}
       <Button type="submit">{loading ? 'Cadastrando...' : 'Cadastrar'}</Button>
     </form>
   )
@@ -296,12 +323,6 @@ function FormFuncionario({ onSuccess }: { onSuccess: (demo: boolean) => void }) 
 export default function CadastroPage() {
   const [tipo, setTipo] = useState<TipoCadastro | null>(null)
   const [success, setSuccess] = useState(false)
-  const [isDemo, setIsDemo] = useState(false)
-
-  function handleSuccess(demo: boolean) {
-    setIsDemo(demo)
-    setSuccess(true)
-  }
 
   if (success) {
     return (
@@ -309,11 +330,6 @@ export default function CadastroPage() {
         <i className="fa-solid fa-circle-check text-5xl text-green-600 mb-4 block" />
         <h2 className="text-2xl font-bold text-[#0F172A] mb-2">Cadastro realizado!</h2>
         <p className="text-[#475569] mb-2">Seu cadastro foi concluído com sucesso.</p>
-        {isDemo && (
-          <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4 inline-block">
-            ⚠ Modo demonstrativo — API indisponível no momento
-          </p>
-        )}
         <div className="mt-4">
           <Link to="/login" className="inline-block rounded-lg px-5 py-3 font-semibold bg-[#1E4E8C] text-white no-underline hover:brightness-90 transition-all">
             Ir para o login
@@ -372,10 +388,10 @@ export default function CadastroPage() {
           </div>
 
           <div className="bg-white border border-[#E2E8F0] rounded-xl p-6">
-            {tipo === 'dentista' && <FormDentista onSuccess={handleSuccess} />}
-            {tipo === 'patrocinador' && <FormPatrocinador onSuccess={handleSuccess} />}
-            {tipo === 'beneficiario' && <FormBeneficiario onSuccess={handleSuccess} />}
-            {tipo === 'funcionario' && <FormFuncionario onSuccess={handleSuccess} />}
+            {tipo === 'dentista' && <FormDentista onSuccess={() => setSuccess(true)} />}
+            {tipo === 'patrocinador' && <FormPatrocinador onSuccess={() => setSuccess(true)} />}
+            {tipo === 'beneficiario' && <FormBeneficiario onSuccess={() => setSuccess(true)} />}
+            {tipo === 'funcionario' && <FormFuncionario onSuccess={() => setSuccess(true)} />}
           </div>
 
           <p className="text-sm text-[#475569] mt-6 text-center">

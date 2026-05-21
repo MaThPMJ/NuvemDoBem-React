@@ -1,18 +1,17 @@
 import { useState, useEffect } from 'react'
 import { getPatrocinadores } from '../../../services/patrocinadorService'
-import { mockPatrocinadores } from '../../../mocks/patrocinadores'
 import type { Patrocinador } from '../../../types'
 
 export default function PatrocinadoresTab() {
   const [patrocinadores, setPatrocinadores] = useState<Patrocinador[]>([])
   const [loading, setLoading] = useState(true)
-  const [isOffline, setIsOffline] = useState(false)
+  const [error, setError] = useState('')
   const [query, setQuery] = useState('')
 
   useEffect(() => {
     getPatrocinadores()
-      .then(data => { setPatrocinadores(data); setIsOffline(false) })
-      .catch(() => { setPatrocinadores(mockPatrocinadores); setIsOffline(true) })
+      .then(data => setPatrocinadores(data))
+      .catch(() => setError('Não foi possível carregar os patrocinadores. Tente novamente mais tarde.'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -30,10 +29,10 @@ export default function PatrocinadoresTab() {
 
   return (
     <div>
-      {isOffline && (
-        <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium rounded-lg px-3 py-2 mb-4">
-          <i className="fa-solid fa-triangle-exclamation" />
-          API indisponível — exibindo dados demonstrativos
+      {error && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-xs font-medium rounded-lg px-3 py-2 mb-4">
+          <i className="fa-solid fa-circle-exclamation" />
+          {error}
         </div>
       )}
 

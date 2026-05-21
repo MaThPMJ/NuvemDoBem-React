@@ -18,7 +18,16 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
     throw new Error('Sessão expirada')
   }
 
-  if (!res.ok) throw new Error(`Erro ${res.status} em ${path}`)
+  if (!res.ok) {
+    let detail = ''
+    try {
+      const body = await res.json()
+      detail = body?.message ?? body?.erro ?? body?.error ?? JSON.stringify(body)
+    } catch {
+      detail = await res.text().catch(() => '')
+    }
+    throw new Error(detail || `Erro ${res.status} em ${path}`)
+  }
 
   if (res.status === 204) return null
   const contentType = res.headers.get('content-type')

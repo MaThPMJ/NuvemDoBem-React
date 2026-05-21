@@ -8,7 +8,7 @@ interface User {
   cargo: string
   email: string
   tipo: UserTipo
-  isDemo: boolean
+  id: number
 }
 
 interface AuthContextType {
@@ -29,11 +29,21 @@ function parseNome(email: string): string {
     .replace(/\b\w/g, c => c.toUpperCase())
 }
 
-const cargoByTipo: Record<UserTipo, string> = {
-  integrante: 'Funcionário',
-  dentista: 'Dentista',
-  beneficiario: 'Beneficiário',
-  patrocinador: 'Patrocinador',
+async function postLogin(path: string, email: string, senha: string): Promise<unknown> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, senha }),
+  })
+  if (!res.ok) {
+    let msg = 'E-mail ou senha incorretos.'
+    try {
+      const body = await res.json()
+      if (body?.mensagem) msg = body.mensagem
+    } catch { /* ignore */ }
+    throw new Error(msg)
+  }
+  return res.json()
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -47,121 +57,74 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   })
 
   async function login(email: string, senha: string, tipo: UserTipo): Promise<void> {
-    // Integrantes: autenticação real possível (única entidade com senha na API)
     if (tipo === 'integrante') {
-      try {
-        const res = await fetch(`${BASE_URL}/integrantes`, {
-          headers: { 'Content-Type': 'application/json' },
-        })
-        if (res.ok) {
-          const lista = (await res.json()) as Integrante[]
-          const encontrado = lista.find(i => i.email === email && i.senha === senha)
-          if (encontrado) {
-            const userData: User = {
-              nome: encontrado.nome,
-              cargo: encontrado.cargo,
-              email: encontrado.email,
-              tipo: 'integrante',
-              isDemo: false,
-            }
-            setUser(userData)
-            localStorage.setItem('nuvem_user', JSON.stringify(userData))
-            localStorage.setItem('token', `integrante-${encontrado.idIntegrante}`)
-            return
-          }
-        }
-      } catch { /* API offline */ }
+      const data = await postLogin('/integrantes/login', email, senha) as Integrante
+      const userData: User = {
+        nome: data.nome,
+        cargo: data.cargo,
+        email: data.email,
+        tipo: 'integrante',
+        id: data.idIntegrante,
+      }
+      setUser(userData)
+      localStorage.setItem('nuvem_user', JSON.stringify(userData))
+      localStorage.setItem('token', `integrante-${data.idIntegrante}`)
+      return
     }
 
-    // Dentistas: autenticação real com email + senha (API expõe senha no GET /dentistas)
     if (tipo === 'dentista') {
-      try {
-        const res = await fetch(`${BASE_URL}/dentistas`, {
-          headers: { 'Content-Type': 'application/json' },
-        })
-        if (res.ok) {
-          const lista = (await res.json()) as Dentista[]
-          const encontrado = lista.find(d => d.email === email && (d as unknown as Record<string, unknown>)['senha'] === senha)
-          if (encontrado) {
-            const userData: User = {
-              nome: encontrado.nome,
-              cargo: 'Dentista',
-              email: encontrado.email,
-              tipo: 'dentista',
-              isDemo: false,
-            }
-            setUser(userData)
-            localStorage.setItem('nuvem_user', JSON.stringify(userData))
-            localStorage.setItem('token', `dentista-${encontrado.idDentista}`)
-            return
-          }
-        }
-      } catch { /* API offline */ }
+      const data = await postLogin('/dentistas/login', email, senha) as Dentista
+      const userData: User = {
+        nome: data.nome,
+        cargo: 'Dentista',
+        email: data.email,
+        tipo: 'dentista',
+        id: data.idDentista,
+      }
+      setUser(userData)
+      localStorage.setItem('nuvem_user', JSON.stringify(userData))
+      localStorage.setItem('token', `dentista-${data.idDentista}`)
+      return
     }
 
-    // Beneficiários: tenta encontrar pelo email
     if (tipo === 'beneficiario') {
-      try {
-        const res = await fetch(`${BASE_URL}/beneficiarios`, {
-          headers: { 'Content-Type': 'application/json' },
-        })
-        if (res.ok) {
-          const lista = (await res.json()) as Beneficiario[]
-          const encontrado = lista.find(b => b.email === email)
-          if (encontrado) {
-            const userData: User = {
-              nome: encontrado.nome,
-              cargo: 'Beneficiário',
-              email: encontrado.email,
-              tipo: 'beneficiario',
-              isDemo: true,
-            }
-            setUser(userData)
-            localStorage.setItem('nuvem_user', JSON.stringify(userData))
-            localStorage.setItem('token', `beneficiario-${encontrado.idBeneficiario}`)
-            return
-          }
-        }
-      } catch { /* API offline */ }
+      const data = await postLogin('/beneficiarios/login', email, senha) as Beneficiario
+      const userData: User = {
+        nome: data.nome,
+        cargo: 'Beneficiário',
+        email: data.email,
+        tipo: 'beneficiario',
+        id: data.idBeneficiario,
+      }
+      setUser(userData)
+      localStorage.setItem('nuvem_user', JSON.stringify(userData))
+      localStorage.setItem('token', `beneficiario-${data.idBeneficiario}`)
+      return
     }
 
-    // Patrocinadores: tenta encontrar pelo email
     if (tipo === 'patrocinador') {
-      try {
-        const res = await fetch(`${BASE_URL}/patrocinadores`, {
-          headers: { 'Content-Type': 'application/json' },
-        })
-        if (res.ok) {
-          const lista = (await res.json()) as Patrocinador[]
-          const encontrado = lista.find(p => p.email === email)
-          if (encontrado) {
-            const userData: User = {
-              nome: encontrado.nome ?? parseNome(email),
-              cargo: 'Patrocinador',
-              email: encontrado.email ?? email,
-              tipo: 'patrocinador',
-              isDemo: true,
-            }
-            setUser(userData)
-            localStorage.setItem('nuvem_user', JSON.stringify(userData))
-            localStorage.setItem('token', `patrocinador-${encontrado.idPatrocinador}`)
-            return
-          }
-        }
-      } catch { /* API offline */ }
+      // Patrocinador não tem endpoint /login — busca por e-mail na lista
+      const res = await fetch(`${BASE_URL}/patrocinadores`, {
+        headers: { 'Content-Type': 'application/json' },
+      })
+      if (!res.ok) throw new Error('Não foi possível conectar à API.')
+      const lista = (await res.json()) as Patrocinador[]
+      const encontrado = lista.find(p => p.email === email)
+      if (!encontrado) throw new Error('E-mail não encontrado.')
+      const userData: User = {
+        nome: encontrado.nome ?? parseNome(email),
+        cargo: 'Patrocinador',
+        email: encontrado.email ?? email,
+        tipo: 'patrocinador',
+        id: encontrado.idPatrocinador,
+      }
+      setUser(userData)
+      localStorage.setItem('nuvem_user', JSON.stringify(userData))
+      localStorage.setItem('token', `patrocinador-${encontrado.idPatrocinador}`)
+      return
     }
 
-    // Fallback demonstrativo: qualquer email/senha funciona para qualquer papel
-    const userData: User = {
-      nome: parseNome(email),
-      cargo: cargoByTipo[tipo],
-      email,
-      tipo,
-      isDemo: true,
-    }
-    setUser(userData)
-    localStorage.setItem('nuvem_user', JSON.stringify(userData))
-    localStorage.setItem('token', `demo-${tipo}`)
+    throw new Error('Tipo de usuário inválido.')
   }
 
   function logout() {

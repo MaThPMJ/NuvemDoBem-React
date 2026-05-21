@@ -1,18 +1,17 @@
 import { useState, useEffect } from 'react'
 import { getDentistas } from '../../../services/dentistaService'
-import { mockDentistas } from '../../../mocks/dentistas'
 import type { Dentista } from '../../../types'
 
 export default function DentistasTab() {
   const [dentistas, setDentistas] = useState<Dentista[]>([])
   const [loading, setLoading] = useState(true)
-  const [isOffline, setIsOffline] = useState(false)
+  const [error, setError] = useState('')
   const [query, setQuery] = useState('')
 
   useEffect(() => {
     getDentistas()
-      .then(data => { setDentistas(data); setIsOffline(false) })
-      .catch(() => { setDentistas(mockDentistas); setIsOffline(true) })
+      .then(data => setDentistas(data))
+      .catch(() => setError('Não foi possível carregar os dentistas. Tente novamente mais tarde.'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -30,10 +29,10 @@ export default function DentistasTab() {
 
   return (
     <div>
-      {isOffline && (
-        <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium rounded-lg px-3 py-2 mb-4">
-          <i className="fa-solid fa-triangle-exclamation" />
-          API indisponível — exibindo dados demonstrativos
+      {error && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-xs font-medium rounded-lg px-3 py-2 mb-4">
+          <i className="fa-solid fa-circle-exclamation" />
+          {error}
         </div>
       )}
 
