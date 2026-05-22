@@ -5,6 +5,7 @@ import SectionTitle from '../../Components/ui/SectionTitle'
 import Input from '../../Components/ui/Input'
 import Button from '../../Components/ui/Button'
 import { apiFetch } from '../../services/api'
+import { maskCPF, maskPhone, maskCNPJCPF } from '../../utils/masks'
 
 type TipoCadastro = 'dentista' | 'patrocinador' | 'beneficiario' | 'funcionario'
 
@@ -19,8 +20,6 @@ interface DentistaForm {
 
 interface PatrocinadorForm {
   nome: string
-  empresa: string
-  tipoApoio: string
   email: string
   senha: string
   cnpjCpf: string
@@ -34,6 +33,7 @@ interface BeneficiarioForm {
   cpf: string
   dataNascimento: string
   telefone: string
+  endereco: string
 }
 
 interface FuncionarioForm {
@@ -124,6 +124,7 @@ function FormDentista({ onSuccess }: { onSuccess: () => void }) {
         error={errors.especialidade?.message} />
       <Input label="Telefone" name="telefone" type="tel"
         registration={register('telefone', { required: 'Telefone é obrigatório.' })}
+        mask={maskPhone}
         error={errors.telefone?.message} />
       {error && (
         <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
@@ -147,8 +148,6 @@ function FormPatrocinador({ onSuccess }: { onSuccess: () => void }) {
         body: JSON.stringify({
           idPatrocinador: Date.now() % 100000,
           nome: data.nome,
-          empresa: data.empresa,
-          tipoApoio: data.tipoApoio,
           contato: data.email,
           email: data.email,
           senha: data.senha,
@@ -170,12 +169,6 @@ function FormPatrocinador({ onSuccess }: { onSuccess: () => void }) {
       <Input label="Nome / Razão Social" name="nome"
         registration={register('nome', { required: 'Nome ou Razão Social é obrigatório.' })}
         error={errors.nome?.message} />
-      <Input label="Empresa" name="empresa"
-        registration={register('empresa', { required: 'Empresa é obrigatória.' })}
-        error={errors.empresa?.message} />
-      <Input label="Tipo de apoio (ex: Financeiro, Equipamentos)" name="tipoApoio"
-        registration={register('tipoApoio', { required: 'Tipo de apoio é obrigatório.' })}
-        error={errors.tipoApoio?.message} />
       <Input label="E-mail" name="email" type="email"
         registration={register('email', {
           required: 'E-mail é obrigatório.',
@@ -190,9 +183,11 @@ function FormPatrocinador({ onSuccess }: { onSuccess: () => void }) {
         error={errors.senha?.message} />
       <Input label="CNPJ / CPF" name="cnpjCpf"
         registration={register('cnpjCpf', { required: 'CNPJ ou CPF é obrigatório.' })}
+        mask={maskCNPJCPF}
         error={errors.cnpjCpf?.message} />
       <Input label="Telefone" name="telefone" type="tel"
         registration={register('telefone', { required: 'Telefone é obrigatório.' })}
+        mask={maskPhone}
         error={errors.telefone?.message} />
       {error && (
         <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
@@ -221,6 +216,7 @@ function FormBeneficiario({ onSuccess }: { onSuccess: () => void }) {
           cpf: data.cpf,
           dataNascimento: data.dataNascimento,
           telefone: data.telefone,
+          endereco: data.endereco || undefined,
         }),
       })
       onSuccess()
@@ -250,13 +246,18 @@ function FormBeneficiario({ onSuccess }: { onSuccess: () => void }) {
         error={errors.senha?.message} />
       <Input label="CPF" name="cpf"
         registration={register('cpf', { required: 'CPF é obrigatório.' })}
+        mask={maskCPF}
         error={errors.cpf?.message} />
       <Input label="Data de nascimento" name="dataNascimento" type="date"
         registration={register('dataNascimento', { required: 'Data de nascimento é obrigatória.' })}
         error={errors.dataNascimento?.message} />
       <Input label="Telefone" name="telefone" type="tel"
         registration={register('telefone', { required: 'Telefone é obrigatório.' })}
+        mask={maskPhone}
         error={errors.telefone?.message} />
+      <Input label="Endereço" name="endereco"
+        registration={register('endereco', { required: 'Endereço é obrigatório.' })}
+        error={errors.endereco?.message} />
       {error && (
         <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
       )}
