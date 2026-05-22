@@ -150,7 +150,6 @@ export default function CasosPage() {
 
   const isIntegrante = user?.tipo === 'integrante'
   const diagAtual = detail.diagnosticos[0]
-  const jaEncaminhou = detail.pedidos.length > 0
 
   if (loading) {
     return (
