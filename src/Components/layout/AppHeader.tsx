@@ -12,6 +12,7 @@ const navByTipo: Record<UserTipo, NavItem[]> = {
   integrante: [
     { to: '/dashboard', label: 'Dashboard' },
     { to: '/casos', label: 'Casos' },
+    { to: '/prontuario', label: 'Abrir Caso' },
     { to: '/relatorios', label: 'Relatórios' },
     { to: '/integracoes', label: 'Integrações' },
     { to: '/chat', label: 'Chat' },
@@ -19,7 +20,6 @@ const navByTipo: Record<UserTipo, NavItem[]> = {
   dentista: [
     { to: '/area-dentista', label: 'Início' },
     { to: '/casos', label: 'Meus Casos' },
-    { to: '/prontuario', label: 'Novo Prontuário' },
   ],
   beneficiario: [
     { to: '/area-beneficiario', label: 'Meu Histórico' },

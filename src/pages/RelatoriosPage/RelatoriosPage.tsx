@@ -31,13 +31,13 @@ export default function RelatoriosPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    Promise.all([getCasos(), getDoacoes(), getPatrocinadores()])
+    Promise.allSettled([getCasos(), getDoacoes(), getPatrocinadores()])
       .then(([c, d, p]) => {
-        setCasos(c)
-        setDoacoes(d)
-        setTotalPatrocinadores(p.length)
+        if (c.status === 'fulfilled') setCasos(c.value)
+        if (d.status === 'fulfilled') setDoacoes(d.value)
+        if (p.status === 'fulfilled') setTotalPatrocinadores(p.value.length)
+        if (c.status === 'rejected') setError('Não foi possível carregar os casos.')
       })
-      .catch(() => setError('Não foi possível carregar os dados para os relatórios.'))
       .finally(() => setLoading(false))
   }, [])
 

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getCasos, deleteCaso } from '../../services/casoService'
-import { getDiagnosticos } from '../../services/diagnosticoService'
-import { getPedidosEncaminhamento, createPedidoEncaminhamento } from '../../services/pedidoEncaminhamentoService'
+import { getDiagnosticos, deleteDiagnostico } from '../../services/diagnosticoService'
+import { getPedidosEncaminhamento, createPedidoEncaminhamento, deletePedidoEncaminhamento } from '../../services/pedidoEncaminhamentoService'
+import { getHistoricosStatus, deleteHistoricoStatus } from '../../services/historicoStatusService'
 import { getDentistas } from '../../services/dentistaService'
 import { useAuth } from '../../context/AuthContext'
-import type { Caso, Diagnostico, PedidoEncaminhamento, Dentista } from '../../types'
+import type { Caso, Diagnostico, PedidoEncaminhamento, Dentista, HistoricoStatus } from '../../types'
 
 function formatDate(iso: string): string {
   const d = iso.split('T')[0].split('-')
@@ -49,6 +50,7 @@ const STATUS_FILTER_LABELS: Record<string, string> = {
 interface DetailState {
   diagnosticos: Diagnostico[]
   pedidos: PedidoEncaminhamento[]
+  historicos: HistoricoStatus[]
   loading: boolean
 }
 
@@ -61,7 +63,7 @@ export default function CasosPage() {
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('TODOS')
   const [selectedCaso, setSelectedCaso] = useState<Caso | null>(null)
-  const [detail, setDetail] = useState<DetailState>({ diagnosticos: [], pedidos: [], loading: false })
+  const [detail, setDetail] = useState<DetailState>({ diagnosticos: [], pedidos: [], historicos: [], loading: false })
   const [showEncModal, setShowEncModal] = useState(false)
   const [encLoading, setEncLoading] = useState(false)
   const [encError, setEncError] = useState('')
@@ -87,14 +89,15 @@ export default function CasosPage() {
 
   function openCaso(caso: Caso) {
     setSelectedCaso(caso)
-    setDetail({ diagnosticos: [], pedidos: [], loading: true })
+    setDetail({ diagnosticos: [], pedidos: [], historicos: [], loading: true })
     setEncSuccess(false)
     setSelectedDentistaId('')
-    Promise.all([getDiagnosticos(), getPedidosEncaminhamento()])
-      .then(([d, p]) => {
+    Promise.all([getDiagnosticos(), getPedidosEncaminhamento(), getHistoricosStatus()])
+      .then(([d, p, h]) => {
         setDetail({
           diagnosticos: d.filter(x => x.caso?.idCaso === caso.idCaso),
           pedidos: p.filter(x => x.caso?.idCaso === caso.idCaso),
+          historicos: h.filter(x => x.caso?.idCaso === caso.idCaso),
           loading: false,
         })
       })
@@ -109,6 +112,9 @@ export default function CasosPage() {
       const novo = await createPedidoEncaminhamento({
         caso: { idCaso: selectedCaso.idCaso },
         dentista: { idDentista: Number(selectedDentistaId) },
+        integrante: { idIntegrante: user!.id },
+        dataPedido: new Date().toISOString().split('T')[0],
+        status: 'PENDENTE',
       })
       setDetail(s => ({ ...s, pedidos: [...s.pedidos, novo] }))
       setEncSuccess(true)
@@ -125,6 +131,12 @@ export default function CasosPage() {
     setDeleteLoading(true)
     setDeleteError('')
     try {
+      // Excluir filhos antes do caso (FK constraints do Oracle)
+      await Promise.all([
+        ...detail.diagnosticos.map(d => deleteDiagnostico(d.idDiagnostico)),
+        ...detail.pedidos.map(p => deletePedidoEncaminhamento(p.idPedido)),
+        ...detail.historicos.map(h => deleteHistoricoStatus(h.idHistorico)),
+      ])
       await deleteCaso(selectedCaso.idCaso)
       setCasos(prev => prev.filter(c => c.idCaso !== selectedCaso.idCaso))
       setSelectedCaso(null)
@@ -177,7 +189,7 @@ export default function CasosPage() {
             to="/prontuario"
             className="bg-[#F29E1F] text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-[#d98b0d] transition-colors no-underline"
           >
-            + Novo Prontuário
+            + Abrir Caso
           </Link>
         )}
       </div>
@@ -362,10 +374,41 @@ export default function CasosPage() {
                     )}
                   </div>
 
+                  {/* Histórico de status */}
+                  {detail.historicos.length > 0 && (
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wide text-[#475569] mb-3">Histórico de Status</h3>
+                      <div className="grid gap-2">
+                        {detail.historicos
+                          .slice()
+                          .sort((a, b) => a.dataAlteracao.localeCompare(b.dataAlteracao))
+                          .map(h => {
+                            const anterior = h.stAnterior ?? h.status ?? null
+                            const novo = h.stNovo ?? h.status ?? '—'
+                            return (
+                              <div key={h.idHistorico} className="flex items-center gap-3 bg-[#F7F9FC] rounded-lg px-3 py-2">
+                                <i className="fa-solid fa-clock-rotate-left text-[#475569] text-xs shrink-0" />
+                                <div className="flex-1 flex items-center gap-2 flex-wrap">
+                                  {anterior ? (
+                                    <>
+                                      <StatusPill status={anterior} />
+                                      <i className="fa-solid fa-arrow-right text-[#475569] text-xs" />
+                                    </>
+                                  ) : null}
+                                  <StatusPill status={novo} />
+                                </div>
+                                <span className="text-xs text-[#475569] shrink-0">{formatDate(h.dataAlteracao)}</span>
+                              </div>
+                            )
+                          })}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Ações — só para integrantes */}
                   {isIntegrante && (
                     <div className="grid gap-2">
-                      {detail.diagnosticos.length > 0 && selectedCaso.status !== 'CONCLUIDO' && (
+                      {selectedCaso.status !== 'CONCLUIDO' && selectedCaso.status !== 'CANCELADO' && (
                         <button
                           onClick={() => { setShowEncModal(true); setEncError('') }}
                           className="w-full bg-[#1E4E8C] text-white font-semibold py-2.5 rounded-lg hover:bg-[#163d70] transition-colors cursor-pointer text-sm flex items-center justify-center gap-2"
