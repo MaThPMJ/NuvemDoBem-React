@@ -58,7 +58,9 @@ export interface Diagnostico {
 
 export interface HistoricoStatus {
   idHistorico: number
-  status: string
+  status?: string
+  stAnterior?: string | null
+  stNovo?: string
   dataAlteracao: string
   caso?: Caso
   integrante?: Integrante
