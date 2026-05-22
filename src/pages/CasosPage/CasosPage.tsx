@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { getCasos } from '../../services/casoService'
+import { getCasos, deleteCaso } from '../../services/casoService'
 import { getDiagnosticos } from '../../services/diagnosticoService'
 import { getPedidosEncaminhamento, createPedidoEncaminhamento } from '../../services/pedidoEncaminhamentoService'
 import { getDentistas } from '../../services/dentistaService'
@@ -67,6 +67,9 @@ export default function CasosPage() {
   const [encError, setEncError] = useState('')
   const [encSuccess, setEncSuccess] = useState(false)
   const [selectedDentistaId, setSelectedDentistaId] = useState('')
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   useEffect(() => {
     Promise.all([getCasos(), getDentistas()])
@@ -114,6 +117,22 @@ export default function CasosPage() {
       setEncError(err instanceof Error ? err.message : 'Erro ao encaminhar. Tente novamente.')
     } finally {
       setEncLoading(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!selectedCaso) return
+    setDeleteLoading(true)
+    setDeleteError('')
+    try {
+      await deleteCaso(selectedCaso.idCaso)
+      setCasos(prev => prev.filter(c => c.idCaso !== selectedCaso.idCaso))
+      setSelectedCaso(null)
+      setShowDeleteConfirm(false)
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Erro ao excluir caso.')
+    } finally {
+      setDeleteLoading(false)
     }
   }
 
@@ -344,15 +363,29 @@ export default function CasosPage() {
                     )}
                   </div>
 
-                  {/* Botão encaminhar — só para integrantes e se houver diagnóstico */}
-                  {isIntegrante && detail.diagnosticos.length > 0 && selectedCaso.status !== 'CONCLUIDO' && (
-                    <button
-                      onClick={() => { setShowEncModal(true); setEncError('') }}
-                      className="w-full bg-[#1E4E8C] text-white font-semibold py-2.5 rounded-lg hover:bg-[#163d70] transition-colors cursor-pointer text-sm flex items-center justify-center gap-2"
-                    >
-                      <i className="fa-solid fa-share-from-square" />
-                      Encaminhar para dentista
-                    </button>
+                  {/* Ações — só para integrantes */}
+                  {isIntegrante && (
+                    <div className="grid gap-2">
+                      {detail.diagnosticos.length > 0 && selectedCaso.status !== 'CONCLUIDO' && (
+                        <button
+                          onClick={() => { setShowEncModal(true); setEncError('') }}
+                          className="w-full bg-[#1E4E8C] text-white font-semibold py-2.5 rounded-lg hover:bg-[#163d70] transition-colors cursor-pointer text-sm flex items-center justify-center gap-2"
+                        >
+                          <i className="fa-solid fa-share-from-square" />
+                          Encaminhar para dentista
+                        </button>
+                      )}
+                      <button
+                        onClick={() => { setShowDeleteConfirm(true); setDeleteError('') }}
+                        className="w-full border border-red-200 text-red-600 font-semibold py-2.5 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-sm flex items-center justify-center gap-2"
+                      >
+                        <i className="fa-solid fa-trash" />
+                        Excluir caso
+                      </button>
+                      {deleteError && (
+                        <p className="text-xs text-red-600 text-center">{deleteError}</p>
+                      )}
+                    </div>
                   )}
                 </>
               )}
@@ -412,6 +445,46 @@ export default function CasosPage() {
                 className="flex-1 bg-[#1E4E8C] text-white py-2 rounded-lg text-sm font-semibold hover:bg-[#163d70] cursor-pointer disabled:opacity-60 transition-colors"
               >
                 {encLoading ? 'Enviando...' : 'Confirmar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmação de exclusão */}
+      {showDeleteConfirm && selectedCaso && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-[380px] grid gap-4">
+            <div className="flex items-center gap-3">
+              <span className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <i className="fa-solid fa-trash text-red-600" />
+              </span>
+              <div>
+                <h3 className="font-bold text-[#0F172A]">Excluir caso</h3>
+                <p className="text-sm text-[#475569]">Esta ação não pode ser desfeita.</p>
+              </div>
+            </div>
+            <p className="text-sm text-[#475569]">
+              Tem certeza que deseja excluir o caso de{' '}
+              <strong className="text-[#0F172A]">{selectedCaso.beneficiario?.nome ?? 'paciente sem nome'}</strong>?
+            </p>
+            {deleteError && (
+              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{deleteError}</p>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setShowDeleteConfirm(false); setDeleteError('') }}
+                disabled={deleteLoading}
+                className="flex-1 border border-[#E2E8F0] text-[#475569] py-2 rounded-lg text-sm font-medium hover:bg-[#F7F9FC] cursor-pointer disabled:opacity-60"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleteLoading}
+                className="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 cursor-pointer disabled:opacity-60 transition-colors"
+              >
+                {deleteLoading ? 'Excluindo...' : 'Excluir'}
               </button>
             </div>
           </div>

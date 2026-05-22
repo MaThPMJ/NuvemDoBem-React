@@ -12,3 +12,6 @@ export const createCaso = (data: Omit<Caso, 'id' | 'beneficiario' | 'dentista'>)
 
 export const updateCaso = (id: number, data: Partial<Caso>): Promise<Caso> =>
   apiFetch(`/casos/${id}`, { method: 'PUT', body: JSON.stringify(data) }) as Promise<Caso>
+
+export const deleteCaso = (id: number): Promise<null> =>
+  apiFetch(`/casos/${id}`, { method: 'DELETE' }) as Promise<null>

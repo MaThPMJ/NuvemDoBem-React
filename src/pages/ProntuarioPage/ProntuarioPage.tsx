@@ -6,6 +6,7 @@ import { getDentistas } from '../../services/dentistaService'
 import { getEnderecoFormatadoPorCep } from '../../services/enderecoService'
 import { apiFetch } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
+import { maskCPF, maskPhone, maskCEP } from '../../utils/masks'
 import type { Beneficiario, Dentista, Caso } from '../../types'
 
 interface FormData {
@@ -110,6 +111,9 @@ export default function ProntuarioPage() {
     if (!novoBenef.nome.trim()) errs.nome = 'Nome é obrigatório.'
     if (!novoBenef.email.trim()) errs.email = 'E-mail é obrigatório.'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(novoBenef.email)) errs.email = 'Informe um e-mail válido.'
+    if (!novoBenef.cpf.trim()) errs.cpf = 'CPF é obrigatório.'
+    if (!novoBenef.dataNascimento) errs.dataNascimento = 'Data de nascimento é obrigatória.'
+    if (!novoBenef.telefone.trim()) errs.telefone = 'Telefone é obrigatório.'
     setNovoBenefErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -367,33 +371,36 @@ export default function ProntuarioPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[#475569] mb-1">CPF</label>
+                    <label className="block text-xs font-semibold text-[#475569] mb-1">CPF *</label>
                     <input
                       value={novoBenef.cpf}
-                      onChange={e => setNovoBenef(s => ({ ...s, cpf: e.target.value }))}
+                      onChange={e => setNovoBenef(s => ({ ...s, cpf: maskCPF(e.target.value) }))}
                       placeholder="000.000.000-00"
                       className={inputClass}
                     />
+                    {novoBenefErrors.cpf && <p className="text-xs text-red-600 mt-1">{novoBenefErrors.cpf}</p>}
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[#475569] mb-1">Data de nascimento</label>
+                    <label className="block text-xs font-semibold text-[#475569] mb-1">Data de nascimento *</label>
                     <input
                       type="date"
                       value={novoBenef.dataNascimento}
                       onChange={e => setNovoBenef(s => ({ ...s, dataNascimento: e.target.value }))}
                       className={inputClass}
                     />
+                    {novoBenefErrors.dataNascimento && <p className="text-xs text-red-600 mt-1">{novoBenefErrors.dataNascimento}</p>}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#475569] mb-1">Telefone</label>
+                  <label className="block text-xs font-semibold text-[#475569] mb-1">Telefone *</label>
                   <input
                     type="tel"
                     value={novoBenef.telefone}
-                    onChange={e => setNovoBenef(s => ({ ...s, telefone: e.target.value }))}
+                    onChange={e => setNovoBenef(s => ({ ...s, telefone: maskPhone(e.target.value) }))}
                     placeholder="(11) 90000-0000"
                     className={inputClass}
                   />
+                  {novoBenefErrors.telefone && <p className="text-xs text-red-600 mt-1">{novoBenefErrors.telefone}</p>}
                 </div>
               </div>
             )}
@@ -404,7 +411,8 @@ export default function ProntuarioPage() {
             <div>
               <label className="block text-sm font-medium text-[#0F172A] mb-1">CEP</label>
               <input
-                {...register('cep')}
+                value={maskCEP(cep)}
+                onChange={e => setValue('cep', maskCEP(e.target.value))}
                 placeholder="00000-000"
                 maxLength={9}
                 className={inputClass}

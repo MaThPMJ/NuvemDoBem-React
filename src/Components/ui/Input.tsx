@@ -1,3 +1,4 @@
+import type { ChangeEvent } from 'react'
 import type { UseFormRegisterReturn } from 'react-hook-form'
 
 const fieldClass =
@@ -11,9 +12,20 @@ interface InputProps {
   rows?: number
   registration?: UseFormRegisterReturn
   error?: string
+  mask?: (value: string) => string
 }
 
-export default function Input({ label, name, type = 'text', as = 'input', rows, registration, error }: InputProps) {
+export default function Input({ label, name, type = 'text', as = 'input', rows, registration, error, mask }: InputProps) {
+  const reg = mask && registration
+    ? {
+        ...registration,
+        onChange: (e: ChangeEvent<HTMLInputElement>) => {
+          e.target.value = mask(e.target.value)
+          registration.onChange(e)
+        },
+      }
+    : registration
+
   return (
     <div>
       <label htmlFor={name} className="font-semibold text-[#0F172A] mb-1.5 block">
@@ -22,7 +34,7 @@ export default function Input({ label, name, type = 'text', as = 'input', rows, 
       {as === 'textarea' ? (
         <textarea id={name} rows={rows} className={fieldClass} {...registration} />
       ) : (
-        <input id={name} type={type} className={fieldClass} {...registration} />
+        <input id={name} type={type} className={fieldClass} {...reg} />
       )}
       {error && <p className="text-red-700 text-sm mt-1">{error}</p>}
     </div>
