@@ -20,3 +20,6 @@ export const aceitarPedido = (id: number): Promise<PedidoEncaminhamento> =>
 
 export const recusarPedido = (id: number): Promise<PedidoEncaminhamento> =>
   apiFetch(`/pedidos-encaminhamento/${id}/recusar`, { method: 'PUT' }) as Promise<PedidoEncaminhamento>
+
+export const deletePedidoEncaminhamento = (id: number): Promise<null> =>
+  apiFetch(`/pedidos-encaminhamento/${id}`, { method: 'DELETE' }) as Promise<null>

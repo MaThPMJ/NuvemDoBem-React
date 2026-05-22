@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getCasos, deleteCaso } from '../../services/casoService'
-import { getDiagnosticos } from '../../services/diagnosticoService'
-import { getPedidosEncaminhamento, createPedidoEncaminhamento } from '../../services/pedidoEncaminhamentoService'
-import { getHistoricosStatus } from '../../services/historicoStatusService'
+import { getDiagnosticos, deleteDiagnostico } from '../../services/diagnosticoService'
+import { getPedidosEncaminhamento, createPedidoEncaminhamento, deletePedidoEncaminhamento } from '../../services/pedidoEncaminhamentoService'
+import { getHistoricosStatus, deleteHistoricoStatus } from '../../services/historicoStatusService'
 import { getDentistas } from '../../services/dentistaService'
 import { useAuth } from '../../context/AuthContext'
 import type { Caso, Diagnostico, PedidoEncaminhamento, Dentista, HistoricoStatus } from '../../types'
@@ -131,6 +131,12 @@ export default function CasosPage() {
     setDeleteLoading(true)
     setDeleteError('')
     try {
+      // Excluir filhos antes do caso (FK constraints do Oracle)
+      await Promise.all([
+        ...detail.diagnosticos.map(d => deleteDiagnostico(d.idDiagnostico)),
+        ...detail.pedidos.map(p => deletePedidoEncaminhamento(p.idPedido)),
+        ...detail.historicos.map(h => deleteHistoricoStatus(h.idHistorico)),
+      ])
       await deleteCaso(selectedCaso.idCaso)
       setCasos(prev => prev.filter(c => c.idCaso !== selectedCaso.idCaso))
       setSelectedCaso(null)
