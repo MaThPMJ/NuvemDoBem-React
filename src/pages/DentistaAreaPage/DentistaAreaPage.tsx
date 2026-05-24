@@ -65,14 +65,25 @@ export default function DentistaAreaPage() {
   // Pedidos
   const [pedidoLoading, setPedidoLoading] = useState<number | null>(null)
   const [pedidoError, setPedidoError] = useState('')
+  const [pedidoDiags, setPedidoDiags] = useState<Record<number, Diagnostico[]>>({})
 
   useEffect(() => {
-    Promise.all([getCasos(), getPedidosEncaminhamento()])
-      .then(([c, p]) => {
+    Promise.allSettled([getCasos(), getPedidosEncaminhamento(), getDiagnosticos()])
+      .then(([cr, pr, dr]) => {
+        const c = cr.status === 'fulfilled' ? cr.value : []
+        const p = pr.status === 'fulfilled' ? pr.value : []
+        const diags = dr.status === 'fulfilled' ? dr.value : []
+        const filteredPedidos = p.filter(x => x.dentista?.email === user?.email && x.status === 'PENDENTE')
         setCasos(c.filter(x => x.dentista?.email === user?.email))
-        setPedidos(p.filter(x => x.dentista?.email === user?.email && x.status === 'PENDENTE'))
+        setPedidos(filteredPedidos)
+        const diagMap: Record<number, Diagnostico[]> = {}
+        filteredPedidos.forEach(ped => {
+          if (ped.caso?.idCaso) {
+            diagMap[ped.idPedido] = diags.filter(d => d.caso?.idCaso === ped.caso?.idCaso)
+          }
+        })
+        setPedidoDiags(diagMap)
       })
-      .catch(() => {})
       .finally(() => setLoading(false))
   }, [user?.email])
 
@@ -98,6 +109,15 @@ export default function DentistaAreaPage() {
     setPedidoError('')
     try {
       await aceitarPedido(pedido.idPedido)
+      if (pedido.caso?.idCaso) {
+        await updateCaso(pedido.caso.idCaso, {
+          status: 'EM_ANDAMENTO',
+          dataAbertura: pedido.caso.dataAbertura,
+          beneficiario: pedido.caso.beneficiario,
+          integrante: pedido.caso.integrante,
+          dentista: pedido.dentista,
+        })
+      }
       setPedidos(prev => prev.filter(p => p.idPedido !== pedido.idPedido))
       const atualizados = await getCasos()
       setCasos(atualizados.filter(c => c.dentista?.email === user?.email))
@@ -276,6 +296,29 @@ export default function DentistaAreaPage() {
                         Pendente
                       </span>
                     </div>
+                    {(pedidoDiags[p.idPedido] ?? []).length > 0 ? (
+                      <div className="mb-3 bg-[#EAF2FF] rounded-xl p-3 grid gap-2">
+                        <p className="text-xs font-bold text-[#1E4E8C] uppercase tracking-wide flex items-center gap-1.5">
+                          <i className="fa-solid fa-stethoscope text-[10px]" />
+                          Diagnóstico do paciente
+                        </p>
+                        {(pedidoDiags[p.idPedido] ?? []).map(d => (
+                          <div key={d.idDiagnostico} className="bg-white rounded-lg px-3 py-2">
+                            {d.procedimento && (
+                              <span className="text-xs font-bold text-[#1E4E8C]">{d.procedimento} · </span>
+                            )}
+                            <span className="text-xs text-[#0F172A]">{d.descricao}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="mb-3 bg-[#F7F9FC] rounded-xl px-3 py-2">
+                        <p className="text-xs text-[#94A3B8] flex items-center gap-1.5">
+                          <i className="fa-solid fa-stethoscope text-[10px]" />
+                          Nenhum diagnóstico registrado para este paciente.
+                        </p>
+                      </div>
+                    )}
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleAceitar(p)}
