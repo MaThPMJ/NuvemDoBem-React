@@ -120,9 +120,9 @@ export default function ProntuarioPage() {
           body: JSON.stringify({
             nome: novoBenef.nome,
             email: novoBenef.email,
-            cpf: novoBenef.cpf,
+            cpf: novoBenef.cpf.replace(/\D/g, ''),
             dataNascimento: novoBenef.dataNascimento,
-            telefone: novoBenef.telefone,
+            telefone: novoBenef.telefone.replace(/\D/g, ''),
             dataCadastro: dataAbertura,
           }),
         })

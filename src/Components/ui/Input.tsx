@@ -20,8 +20,11 @@ export default function Input({ label, name, type = 'text', as = 'input', rows, 
     ? {
         ...registration,
         onChange: (e: ChangeEvent<HTMLInputElement>) => {
-          e.target.value = mask(e.target.value)
-          registration.onChange(e)
+          const masked = mask(e.target.value)
+          e.target.value = masked          // DOM exibe formatado
+          registration.onChange({          // RHF armazena só dígitos
+            target: { value: masked.replace(/\D/g, ''), name: e.target.name },
+          })
         },
       }
     : registration

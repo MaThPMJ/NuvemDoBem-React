@@ -22,7 +22,7 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
     let detail = ''
     try {
       const body = await res.json()
-      detail = body?.message ?? body?.erro ?? body?.error ?? JSON.stringify(body)
+      detail = body?.mensagem ?? body?.message ?? body?.erro ?? body?.error ?? JSON.stringify(body)
     } catch {
       detail = await res.text().catch(() => '')
     }
