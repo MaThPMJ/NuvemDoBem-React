@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import SectionTitle from '../../Components/ui/SectionTitle'
@@ -6,6 +6,8 @@ import Input from '../../Components/ui/Input'
 import Button from '../../Components/ui/Button'
 import { apiFetch } from '../../services/api'
 import { maskCPF, maskPhone, maskCNPJCPF } from '../../utils/masks'
+
+const inputClass = 'w-full px-3 py-3 border border-[#E2E8F0] rounded-lg font-[inherit] text-[#0F172A] bg-white focus:outline-2 focus:outline-[#F29E1F] focus:outline-offset-2'
 
 type TipoCadastro = 'dentista' | 'patrocinador' | 'beneficiario' | 'funcionario'
 
@@ -73,10 +75,14 @@ const tipos = [
 function FormDentista({ onSuccess }: { onSuccess: () => void }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [telError, setTelError] = useState('')
+  const telRef = useRef('')
   const { register, handleSubmit, formState: { errors } } = useForm<DentistaForm>()
 
   async function onSubmit(data: DentistaForm) {
     setError('')
+    if (!telRef.current) { setTelError('Telefone é obrigatório.'); return }
+    setTelError('')
     setLoading(true)
     try {
       await apiFetch('/dentistas', {
@@ -88,7 +94,7 @@ function FormDentista({ onSuccess }: { onSuccess: () => void }) {
           senha: data.senha,
           cro: data.cro,
           especialidade: data.especialidade,
-          telefone: data.telefone,
+          telefone: telRef.current,
         }),
       })
       onSuccess()
@@ -122,10 +128,12 @@ function FormDentista({ onSuccess }: { onSuccess: () => void }) {
       <Input label="Especialidade" name="especialidade"
         registration={register('especialidade', { required: 'Especialidade é obrigatória.' })}
         error={errors.especialidade?.message} />
-      <Input label="Telefone" name="telefone" type="tel"
-        registration={register('telefone', { required: 'Telefone é obrigatório.' })}
-        mask={maskPhone}
-        error={errors.telefone?.message} />
+      <div>
+        <label htmlFor="telD" className="font-semibold text-[#0F172A] mb-1.5 block">Telefone</label>
+        <input id="telD" type="tel" className={inputClass}
+          onChange={(e) => { const m = maskPhone(e.target.value); e.target.value = m; telRef.current = m.replace(/\D/g, ''); if (telError) setTelError('') }} />
+        {telError && <p className="text-red-700 text-sm mt-1">{telError}</p>}
+      </div>
       {error && (
         <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
       )}
@@ -137,10 +145,18 @@ function FormDentista({ onSuccess }: { onSuccess: () => void }) {
 function FormPatrocinador({ onSuccess }: { onSuccess: () => void }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [cnpjError, setCnpjError] = useState('')
+  const [telError, setTelError] = useState('')
+  const cnpjRef = useRef('')
+  const telRef = useRef('')
   const { register, handleSubmit, formState: { errors } } = useForm<PatrocinadorForm>()
 
   async function onSubmit(data: PatrocinadorForm) {
     setError('')
+    let hasErr = false
+    if (!cnpjRef.current) { setCnpjError('CNPJ ou CPF é obrigatório.'); hasErr = true } else setCnpjError('')
+    if (!telRef.current) { setTelError('Telefone é obrigatório.'); hasErr = true } else setTelError('')
+    if (hasErr) return
     setLoading(true)
     try {
       await apiFetch('/patrocinadores', {
@@ -151,8 +167,8 @@ function FormPatrocinador({ onSuccess }: { onSuccess: () => void }) {
           contato: data.email,
           email: data.email,
           senha: data.senha,
-          cnpjCpf: data.cnpjCpf,
-          telefone: data.telefone,
+          cpfCnpj: cnpjRef.current,
+          telefone: telRef.current,
           anonimo: 'N',
         }),
       })
@@ -181,14 +197,18 @@ function FormPatrocinador({ onSuccess }: { onSuccess: () => void }) {
           minLength: { value: 6, message: 'Mínimo de 6 caracteres.' },
         })}
         error={errors.senha?.message} />
-      <Input label="CNPJ / CPF" name="cnpjCpf"
-        registration={register('cnpjCpf', { required: 'CNPJ ou CPF é obrigatório.' })}
-        mask={maskCNPJCPF}
-        error={errors.cnpjCpf?.message} />
-      <Input label="Telefone" name="telefone" type="tel"
-        registration={register('telefone', { required: 'Telefone é obrigatório.' })}
-        mask={maskPhone}
-        error={errors.telefone?.message} />
+      <div>
+        <label htmlFor="cnpjCpf" className="font-semibold text-[#0F172A] mb-1.5 block">CNPJ / CPF</label>
+        <input id="cnpjCpf" type="text" className={inputClass}
+          onChange={(e) => { const m = maskCNPJCPF(e.target.value); e.target.value = m; cnpjRef.current = m.replace(/\D/g, ''); if (cnpjError) setCnpjError('') }} />
+        {cnpjError && <p className="text-red-700 text-sm mt-1">{cnpjError}</p>}
+      </div>
+      <div>
+        <label htmlFor="telP" className="font-semibold text-[#0F172A] mb-1.5 block">Telefone</label>
+        <input id="telP" type="tel" className={inputClass}
+          onChange={(e) => { const m = maskPhone(e.target.value); e.target.value = m; telRef.current = m.replace(/\D/g, ''); if (telError) setTelError('') }} />
+        {telError && <p className="text-red-700 text-sm mt-1">{telError}</p>}
+      </div>
       {error && (
         <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
       )}
@@ -200,10 +220,18 @@ function FormPatrocinador({ onSuccess }: { onSuccess: () => void }) {
 function FormBeneficiario({ onSuccess }: { onSuccess: () => void }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [cpfError, setCpfError] = useState('')
+  const [telError, setTelError] = useState('')
+  const cpfRef = useRef('')
+  const telRef = useRef('')
   const { register, handleSubmit, formState: { errors } } = useForm<BeneficiarioForm>()
 
   async function onSubmit(data: BeneficiarioForm) {
     setError('')
+    let hasErr = false
+    if (!cpfRef.current) { setCpfError('CPF é obrigatório.'); hasErr = true } else setCpfError('')
+    if (!telRef.current) { setTelError('Telefone é obrigatório.'); hasErr = true } else setTelError('')
+    if (hasErr) return
     setLoading(true)
     try {
       await apiFetch('/beneficiarios', {
@@ -213,9 +241,9 @@ function FormBeneficiario({ onSuccess }: { onSuccess: () => void }) {
           nome: data.nome,
           email: data.email,
           senha: data.senha,
-          cpf: data.cpf,
+          cpf: cpfRef.current,
           dataNascimento: data.dataNascimento,
-          telefone: data.telefone,
+          telefone: telRef.current,
           endereco: data.endereco || undefined,
         }),
       })
@@ -244,17 +272,21 @@ function FormBeneficiario({ onSuccess }: { onSuccess: () => void }) {
           minLength: { value: 6, message: 'Mínimo de 6 caracteres.' },
         })}
         error={errors.senha?.message} />
-      <Input label="CPF" name="cpf"
-        registration={register('cpf', { required: 'CPF é obrigatório.' })}
-        mask={maskCPF}
-        error={errors.cpf?.message} />
+      <div>
+        <label htmlFor="cpfB" className="font-semibold text-[#0F172A] mb-1.5 block">CPF</label>
+        <input id="cpfB" type="text" className={inputClass}
+          onChange={(e) => { const m = maskCPF(e.target.value); e.target.value = m; cpfRef.current = m.replace(/\D/g, ''); if (cpfError) setCpfError('') }} />
+        {cpfError && <p className="text-red-700 text-sm mt-1">{cpfError}</p>}
+      </div>
       <Input label="Data de nascimento" name="dataNascimento" type="date"
         registration={register('dataNascimento', { required: 'Data de nascimento é obrigatória.' })}
         error={errors.dataNascimento?.message} />
-      <Input label="Telefone" name="telefone" type="tel"
-        registration={register('telefone', { required: 'Telefone é obrigatório.' })}
-        mask={maskPhone}
-        error={errors.telefone?.message} />
+      <div>
+        <label htmlFor="telB" className="font-semibold text-[#0F172A] mb-1.5 block">Telefone</label>
+        <input id="telB" type="tel" className={inputClass}
+          onChange={(e) => { const m = maskPhone(e.target.value); e.target.value = m; telRef.current = m.replace(/\D/g, ''); if (telError) setTelError('') }} />
+        {telError && <p className="text-red-700 text-sm mt-1">{telError}</p>}
+      </div>
       <Input label="Endereço" name="endereco"
         registration={register('endereco', { required: 'Endereço é obrigatório.' })}
         error={errors.endereco?.message} />
