@@ -186,7 +186,8 @@ Para entrar em contato com a equipe do projeto:
 | | Link |
 |---|---|
 | Repositório | [github.com/MaThPMJ/NuvemDoBem-React](https://github.com/MaThPMJ/NuvemDoBem-React) |
-| Vídeo de demonstração | [youtu.be/AFPI6A1FeYQ](https://youtu.be/AFPI6A1FeYQ) |
+| Vídeo de demonstração | [youtube.com/watch?v=fEgc4Rw-NvM](https://www.youtube.com/watch?v=fEgc4Rw-NvM) |
+| Deploy (Vercel) | [nuvem-do-bem-react.vercel.app](https://nuvem-do-bem-react.vercel.app/) |
 
 ---
 
