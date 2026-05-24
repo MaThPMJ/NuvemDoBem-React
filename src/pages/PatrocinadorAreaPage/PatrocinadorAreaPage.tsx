@@ -32,10 +32,18 @@ export default function PatrocinadorAreaPage() {
   const totalEquipamentos = doacoes.filter(d => d.tipo !== 'MONETARIO').length
 
   return (
-    <div className="max-w-[1200px] mx-auto px-4 py-6">
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-[#0F172A]">Olá, {user?.nome}</h1>
-        <p className="text-sm text-[#475569] mt-1">Obrigado pelo seu apoio à Turma do Bem.</p>
+    <div className="max-w-[780px] mx-auto px-4 py-6">
+
+      {/* Banner de boas-vindas */}
+      <div className="bg-gradient-to-r from-[#0F4C81] to-[#1E4E8C] rounded-2xl px-6 py-6 mb-6 relative overflow-hidden">
+        <div className="absolute right-0 top-0 h-full w-32 opacity-10">
+          <i className="fa-solid fa-hand-holding-heart text-white" style={{ fontSize: '9rem', position: 'absolute', right: '-1rem', top: '-1rem' }} />
+        </div>
+        <p className="text-blue-200 text-sm mb-1">Olá,</p>
+        <h1 className="text-white text-2xl font-bold">{user?.nome}</h1>
+        <p className="text-blue-200 text-sm mt-2">
+          Obrigado pelo seu apoio à <strong className="text-white">Nuvem do Bem</strong>. Veja aqui o impacto das suas doações.
+        </p>
       </div>
 
       {error && (
