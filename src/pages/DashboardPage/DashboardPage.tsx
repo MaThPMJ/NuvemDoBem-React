@@ -1,82 +1,67 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
+import { useState, useEffect } from 'react'
 import DentistasTab from './tabs/DentistasTab'
 import BeneficiariosTab from './tabs/BeneficiariosTab'
 import PatrocinadoresTab from './tabs/PatrocinadoresTab'
+import { getDentistas } from '../../services/dentistaService'
+import { getBeneficiarios } from '../../services/beneficiarioService'
+import { getPatrocinadores } from '../../services/patrocinadorService'
 
 type TabId = 'dentistas' | 'beneficiarios' | 'patrocinadores'
 
-interface Tab {
-  id: TabId
-  label: string
-  emoji: string
-}
-
-const tabs: Tab[] = [
-  { id: 'dentistas', label: 'Dentistas', emoji: '🦷' },
-  { id: 'beneficiarios', label: 'Beneficiários', emoji: '👤' },
-  { id: 'patrocinadores', label: 'Patrocinadores', emoji: '💼' },
+const tabs: { id: TabId; label: string; icon: string; color: string; bg: string }[] = [
+  { id: 'dentistas',     label: 'Dentistas',     icon: 'fa-tooth',             color: 'text-[#1E4E8C]', bg: 'bg-[#EAF2FF]' },
+  { id: 'beneficiarios', label: 'Beneficiários', icon: 'fa-user',              color: 'text-emerald-700', bg: 'bg-emerald-50' },
+  { id: 'patrocinadores',label: 'Patrocinadores',icon: 'fa-hand-holding-heart',color: 'text-amber-700',  bg: 'bg-amber-50' },
 ]
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<TabId>('dentistas')
+  const [counts, setCounts] = useState({ dentistas: 0, beneficiarios: 0, patrocinadores: 0 })
 
-  function handleLogout() {
-    logout()
-    navigate('/login')
-  }
+  useEffect(() => {
+    Promise.allSettled([getDentistas(), getBeneficiarios(), getPatrocinadores()])
+      .then(([d, b, p]) => setCounts({
+        dentistas:     d.status === 'fulfilled' ? d.value.length : 0,
+        beneficiarios: b.status === 'fulfilled' ? b.value.length : 0,
+        patrocinadores:p.status === 'fulfilled' ? p.value.length : 0,
+      }))
+  }, [])
 
   return (
-    <div className="min-h-screen bg-[#F7F9FC]">
-      <header className="bg-white border-b border-[#E2E8F0] sticky top-0 z-10">
-        <div className="max-w-[1200px] mx-auto px-4 py-4 flex items-center justify-between gap-4">
-          <span className="text-[#1E4E8C] font-bold text-lg shrink-0">Nuvem do Bem</span>
+    <div className="max-w-[1200px] mx-auto px-4 py-6">
+      <h1 className="text-xl font-bold text-[#0F172A] mb-6">Painel de Gestão</h1>
 
-          <div className="flex items-center gap-3 min-w-0">
-            <Link
-              to="/perfil"
-              className="text-sm text-[#475569] hover:text-[#1E4E8C] transition-colors truncate"
-            >
-              Olá, <span className="font-semibold text-[#0F172A]">{user?.nome}</span>
-            </Link>
+      {/* Abas visuais */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        {tabs.map(tab => {
+          const active = activeTab === tab.id
+          return (
             <button
-              onClick={handleLogout}
-              className="shrink-0 bg-[#1E4E8C] text-white text-sm font-medium px-4 py-1.5 rounded-lg hover:bg-[#163d70] transition-colors cursor-pointer"
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex flex-col items-center gap-2 rounded-2xl px-4 py-4 border-2 transition-all cursor-pointer ${
+                active
+                  ? 'border-[#1E4E8C] bg-white shadow-sm'
+                  : 'border-[#E2E8F0] bg-white hover:border-[#1E4E8C]/40'
+              }`}
             >
-              Sair
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${active ? tab.bg : 'bg-[#F1F5F9]'}`}>
+                <i className={`fa-solid ${tab.icon} text-lg ${active ? tab.color : 'text-[#94A3B8]'}`} />
+              </div>
+              <span className={`text-xs font-semibold ${active ? 'text-[#0F172A]' : 'text-[#64748B]'}`}>
+                {tab.label}
+              </span>
+              <span className={`text-lg font-bold leading-none ${active ? 'text-[#1E4E8C]' : 'text-[#94A3B8]'}`}>
+                {counts[tab.id]}
+              </span>
             </button>
-          </div>
-        </div>
-      </header>
+          )
+        })}
+      </div>
 
-      <main className="max-w-[1200px] mx-auto px-4 py-6">
-        <h1 className="text-xl font-bold text-[#0F172A] mb-6">Painel de Gestão</h1>
-
-        <div className="overflow-x-auto">
-          <div className="flex border-b border-[#E2E8F0] mb-6 min-w-max sm:min-w-0">
-            {tabs.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
-                  activeTab === tab.id
-                    ? 'border-[#1E4E8C] text-[#1E4E8C]'
-                    : 'border-transparent text-[#475569] hover:text-[#0F172A] hover:border-[#E2E8F0]'
-                }`}
-              >
-                {tab.emoji} {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {activeTab === 'dentistas' && <DentistasTab />}
-        {activeTab === 'beneficiarios' && <BeneficiariosTab />}
-        {activeTab === 'patrocinadores' && <PatrocinadoresTab />}
-      </main>
+      {activeTab === 'dentistas' && <DentistasTab />}
+      {activeTab === 'beneficiarios' && <BeneficiariosTab />}
+      {activeTab === 'patrocinadores' && <PatrocinadoresTab />}
     </div>
   )
 }
