@@ -249,8 +249,8 @@ Os arquivos gerados ficam na pasta `dist/`.
 | | |
 |---|---|
 | **Repositório GitHub** | [github.com/MaThPMJ/NuvemDoBem-React](https://github.com/MaThPMJ/NuvemDoBem-React) |
-| **Vídeo no YouTube** | [youtu.be/AFPI6A1FeYQ](https://youtu.be/AFPI6A1FeYQ) |
-| **Deploy (Vercel)** | [nuvem-do-bem.vercel.app](https://nuvem-do-bem.vercel.app) |
+| **Vídeo no YouTube** | [youtu.be/AFPI6A1FeYQ](https://www.youtube.com/watch?v=fEgc4Rw-NvM&t=4s) |
+| **Deploy (Vercel)** | [nuvem-do-bem.vercel.app](nuvem-do-bem-react.vercel.app) |
 
 ---
 
